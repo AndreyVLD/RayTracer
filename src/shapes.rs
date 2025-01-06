@@ -5,11 +5,12 @@ use crate::vector3::Vector3;
 pub struct HitRecord {
     pub t: f64,
     pub surface: Surface,
+    pub normal: Vector3,
 }
 
 impl HitRecord {
-    fn new(t: f64, surface: Surface) -> HitRecord {
-        HitRecord { t, surface }
+    fn new(t: f64, surface: Surface, normal: Vector3) -> HitRecord {
+        HitRecord { t, surface, normal }
     }
 }
 
@@ -60,15 +61,21 @@ impl Hittable for Sphere {
         let first_root = (-b - sqrt_d) / (2.0 * a);
         let second_root = (-b + sqrt_d) / (2.0 * a);
 
+        let solution: f64;
+
         if first_root < 0.0 && second_root < 0.0 {
-            None
+            return None;
         } else if first_root < 0.0 && second_root >= 0.0 {
-            Some(HitRecord::new(second_root, self.surface))
+            solution = second_root;
         } else if first_root >= 0.0 && second_root >= 0.0 {
-            Some(HitRecord::new(first_root, self.surface))
+            solution = first_root;
         } else {
-            None
+            return None;
         }
+
+        let normal = (ray.point_at(solution) - self.center).normalize();
+
+        Some(HitRecord::new(solution, self.surface, normal))
     }
 }
 
@@ -95,9 +102,9 @@ impl Quad {
     }
 }
 
-impl Hittable for Quad {
-    fn hit(&self, ray: &Ray) -> Option<HitRecord> {}
-}
+// impl Hittable for Quad {
+//     fn hit(&self, ray: &Ray) -> Option<HitRecord> {}
+// }
 
 #[cfg(test)]
 mod tests {
@@ -126,7 +133,8 @@ mod tests {
             sphere.hit(&ray),
             Some(HitRecord {
                 t: 4.0,
-                surface: Surface::default()
+                surface: Surface::default(),
+                normal: Vector3::new(0.0, 0.0, 1.0),
             })
         );
     }
@@ -140,7 +148,8 @@ mod tests {
             sphere.hit(&ray),
             Some(HitRecord {
                 t: 5.0,
-                surface: Surface::default()
+                surface: Surface::default(),
+                normal: Vector3::new(1.0, 0.0, 0.0)
             })
         );
     }
@@ -154,7 +163,8 @@ mod tests {
             sphere.hit(&ray),
             Some(HitRecord {
                 t: 6.0,
-                surface: Surface::default()
+                surface: Surface::default(),
+                normal: Vector3::new(0.0, 0.0, -1.0)
             })
         );
     }

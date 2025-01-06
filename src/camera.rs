@@ -67,7 +67,7 @@ impl Camera {
             }
         });
         if let Some(record) = min_record {
-            record.surface.albedo
+            (record.normal + Vector3::new(1.0, 1.0, 1.0)) * 122.0
         } else {
             background_color
         }
