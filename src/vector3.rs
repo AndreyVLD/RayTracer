@@ -48,6 +48,14 @@ impl ops::Add for Vector3 {
     }
 }
 
+impl ops::AddAssign for Vector3 {
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
+    }
+}
+
 impl ops::Mul for Vector3 {
     type Output = Vector3;
 
@@ -155,6 +163,13 @@ mod tests {
         let solution = Vector3::new(3.0, 6.0, 9.0);
         assert_eq!(left + right, solution);
         assert_eq!(right + left, solution);
+    }
+
+    #[test]
+    fn test_add_assign() {
+        let mut v = Vector3::new(1.0, 2.0, 3.0);
+        v += Vector3::new(2.0, 5.0, 13.0);
+        assert_eq!(v, Vector3::new(3.0, 7.0, 16.0));
     }
 
     #[test]

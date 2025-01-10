@@ -1,10 +1,14 @@
+#![allow(dead_code)]
 use crate::ray::Ray;
 use crate::shapes::{HitRecord, Hittable};
 use crate::vector3::Vector3;
-
+use rand::{rng, Rng};
 pub struct Camera {
-    camera_center: Vector3,
+    aspect_ratio: f64,
     image_width: u32,
+    samples_per_pixel: u32,
+
+    camera_center: Vector3,
     image_height: u32,
     pixel_delta_u: Vector3,
     pixel_delta_v: Vector3,
@@ -12,7 +16,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(image_width: u32, aspect_ratio: f64) -> Camera {
+    pub fn new(image_width: u32, aspect_ratio: f64, samples_per_pixel: u32) -> Camera {
         let mut image_height = (image_width as f64 / aspect_ratio) as u32;
         if image_height < 1 {
             image_height = 1;
@@ -37,9 +41,12 @@ impl Camera {
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
         Camera {
-            camera_center,
+            aspect_ratio,
             image_width,
+            samples_per_pixel,
             image_height,
+
+            camera_center,
             pixel_delta_u,
             pixel_delta_v,
             pixel00_loc,
@@ -50,10 +57,23 @@ impl Camera {
         self.pixel00_loc + (x * self.pixel_delta_u) + (y * self.pixel_delta_v)
     }
 
+    fn get_ray(&self, x: u32, y: u32) -> Ray {
+        let offset_x = rng().random::<f64>() - 0.5;
+        let offset_y = rng().random::<f64>() - 0.5;
+
+        let pixel_sample = self.pixel00_loc
+            + ((x as f64 + offset_x) * self.pixel_delta_u)
+            + ((y as f64 + offset_y) * self.pixel_delta_v);
+
+        let ray_direction = pixel_sample - self.camera_center;
+
+        Ray::new(self.camera_center, ray_direction)
+    }
+
     fn ray_color(ray: &Ray, hittable: &[Box<dyn Hittable>]) -> Vector3 {
         let a = 0.5 * (ray.direction.y + 1.0);
         let background_color =
-            (1.0 - a) * Vector3::new(255.0, 255.0, 255.0) + a * Vector3::new(120.0, 200.0, 255.0);
+            (1.0 - a) * Vector3::new(255.0, 255.0, 255.0) + a * Vector3::new(127.5, 178.5, 255.0);
 
         let mut min_ray_t = f64::INFINITY;
         let mut min_record: Option<HitRecord> = None;
@@ -67,7 +87,7 @@ impl Camera {
             }
         });
         if let Some(record) = min_record {
-            (record.normal + Vector3::new(1.0, 1.0, 1.0)) * 122.0
+            (record.normal + Vector3::new(1.0, 1.0, 1.0)) * 127.5
         } else {
             background_color
         }
@@ -76,15 +96,18 @@ impl Camera {
     pub fn render(&self, hittable: Vec<Box<dyn Hittable>>) {
         let mut imgbuf = image::ImageBuffer::new(self.image_width, self.image_height);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-            let pixel_center = self.get_pixel_center(x, y);
-            let ray_direction = pixel_center - self.camera_center;
+            let mut initial_color = Vector3::default();
 
-            let ray = Ray::new(self.camera_center, ray_direction);
-
-            *pixel = Self::ray_color(&ray, &hittable).to_rgb();
+            for _s in 0..self.samples_per_pixel {
+                let ray = self.get_ray(x, y);
+                let color = Self::ray_color(&ray, &hittable);
+                initial_color += color;
+            }
+            initial_color = initial_color / self.samples_per_pixel as f64;
+            *pixel = initial_color.to_rgb();
         }
 
-        if let Err(e) = imgbuf.save("output.png") {
+        if let Err(e) = imgbuf.save("output_MSAA.png") {
             eprintln!("Failed to save image: {}", e);
         }
     }
