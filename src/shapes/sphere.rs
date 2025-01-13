@@ -19,7 +19,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, ray: &Ray) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, interval: (f64, f64)) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
         let a = ray.direction.dot(&ray.direction);
         let b = 2.0 * ray.direction.dot(&oc);
@@ -34,21 +34,26 @@ impl Hittable for Sphere {
         let first_root = (-b - sqrt_d) / (2.0 * a);
         let second_root = (-b + sqrt_d) / (2.0 * a);
 
-        let solution: f64;
-
-        if first_root < 0.0 && second_root < 0.0 {
-            return None;
-        } else if first_root < 0.0 && second_root >= 0.0 {
-            solution = second_root;
-        } else if first_root >= 0.0 && second_root >= 0.0 {
-            solution = first_root;
+        let solution = if first_root >= 0.0 {
+            first_root
+        } else if second_root >= 0.0 {
+            second_root
         } else {
+            return None;
+        };
+
+        if !(solution >= interval.0 && solution <= interval.1) {
             return None;
         }
 
         let normal = (ray.point_at(solution) - self.center).normalize();
 
-        Some(HitRecord::new(solution, self.surface, normal))
+        Some(HitRecord::new(
+            solution,
+            ray.point_at(solution),
+            self.surface,
+            normal,
+        ))
     }
 }
 
@@ -60,14 +65,14 @@ mod tests {
         let ray = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 1.0));
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0);
 
-        assert_eq!(sphere.hit(&ray), None);
+        assert_eq!(sphere.hit(&ray, (-10.0, 10.0)), None);
     }
     #[test]
     fn test_sphere_intersection_miss_2() {
         let ray = Ray::new(Vector3::new(0.0, 0.0, -7.0), Vector3::new(0.0, 0.0, -1.0));
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0);
 
-        assert_eq!(sphere.hit(&ray), None);
+        assert_eq!(sphere.hit(&ray, (-10.0, 10.0)), None);
     }
 
     #[test]
@@ -76,9 +81,10 @@ mod tests {
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0);
 
         assert_eq!(
-            sphere.hit(&ray),
+            sphere.hit(&ray, (-10.0, 10.0)),
             Some(HitRecord {
                 t: 4.0,
+                poz: Vector3::new(0.0, 0.0, -4.0),
                 surface: Surface::default(),
                 normal: Vector3::new(0.0, 0.0, 1.0),
             })
@@ -91,9 +97,10 @@ mod tests {
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0);
 
         assert_eq!(
-            sphere.hit(&ray),
+            sphere.hit(&ray, (-10.0, 10.0)),
             Some(HitRecord {
                 t: 5.0,
+                poz: Vector3::new(1.0, 0.0, -5.0),
                 surface: Surface::default(),
                 normal: Vector3::new(1.0, 0.0, 0.0)
             })
@@ -106,9 +113,10 @@ mod tests {
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 5.0);
 
         assert_eq!(
-            sphere.hit(&ray),
+            sphere.hit(&ray, (-10.0, 10.0)),
             Some(HitRecord {
                 t: 6.0,
+                poz: Vector3::new(0.0, 0.0, -10.0),
                 surface: Surface::default(),
                 normal: Vector3::new(0.0, 0.0, -1.0)
             })

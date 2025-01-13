@@ -9,6 +9,7 @@ pub struct Camera {
     aspect_ratio: f64,
     image_width: u32,
     samples_per_pixel: u32,
+    max_depth: u32,
 
     camera_center: Vector3,
     image_height: u32,
@@ -18,7 +19,12 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(image_width: u32, aspect_ratio: f64, samples_per_pixel: u32) -> Camera {
+    pub fn new(
+        image_width: u32,
+        aspect_ratio: f64,
+        samples_per_pixel: u32,
+        max_depth: u32,
+    ) -> Camera {
         let mut image_height = (image_width as f64 / aspect_ratio) as u32;
         if image_height < 1 {
             image_height = 1;
@@ -47,6 +53,7 @@ impl Camera {
             image_width,
             samples_per_pixel,
             image_height,
+            max_depth,
 
             camera_center,
             pixel_delta_u,
@@ -72,7 +79,11 @@ impl Camera {
         Ray::new(self.camera_center, ray_direction)
     }
 
-    fn ray_color(ray: &Ray, hittable: &[Box<dyn Hittable>]) -> Vector3 {
+    fn ray_color(ray: &Ray, hittable: &[Box<dyn Hittable>], depth: u32) -> Vector3 {
+        if depth == 0 {
+            return Vector3::new(0.0, 0.0, 0.0);
+        }
+
         let a = 0.5 * (ray.direction.y + 1.0);
         let background_color =
             (1.0 - a) * Vector3::new(255.0, 255.0, 255.0) + a * Vector3::new(127.5, 178.5, 255.0);
@@ -81,7 +92,7 @@ impl Camera {
         let mut min_record: Option<HitRecord> = None;
 
         hittable.iter().for_each(|hittable| {
-            if let Some(hit_record) = hittable.hit(ray) {
+            if let Some(hit_record) = hittable.hit(ray, (0.0001, f64::INFINITY)) {
                 if hit_record.t < min_ray_t {
                     min_ray_t = hit_record.t;
                     min_record = Some(hit_record);
@@ -89,7 +100,8 @@ impl Camera {
             }
         });
         if let Some(record) = min_record {
-            (record.normal + Vector3::new(1.0, 1.0, 1.0)) * 127.5
+            let direction = Vector3::random_on_hemisphere(&record.normal);
+            0.5 * Self::ray_color(&Ray::new(record.poz, direction), hittable, depth - 1)
         } else {
             background_color
         }
@@ -102,14 +114,14 @@ impl Camera {
 
             for _s in 0..self.samples_per_pixel {
                 let ray = self.get_ray(x, y);
-                let color = Self::ray_color(&ray, &hittable);
+                let color = Self::ray_color(&ray, &hittable, self.max_depth);
                 initial_color += color;
             }
             initial_color = initial_color / self.samples_per_pixel as f64;
             *pixel = initial_color.to_rgb();
         }
 
-        if let Err(e) = imgbuf.save("output_MSAA.png") {
+        if let Err(e) = imgbuf.save("output.png") {
             eprintln!("Failed to save image: {}", e);
         }
     }

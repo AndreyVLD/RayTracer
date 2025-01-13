@@ -1,21 +1,26 @@
 use crate::ray::Ray;
 use crate::vector3::Vector3;
-
 #[derive(Debug, PartialEq)]
 pub struct HitRecord {
     pub t: f64,
+    pub poz: Vector3,
     pub surface: Surface,
     pub normal: Vector3,
 }
 
 impl HitRecord {
-    pub(crate) fn new(t: f64, surface: Surface, normal: Vector3) -> HitRecord {
-        HitRecord { t, surface, normal }
+    pub fn new(t: f64, poz: Vector3, surface: Surface, normal: Vector3) -> HitRecord {
+        HitRecord {
+            t,
+            poz,
+            surface,
+            normal,
+        }
     }
 }
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray) -> Option<HitRecord>;
+    fn hit(&self, ray: &Ray, interval: (f64, f64)) -> Option<HitRecord>;
 }
 
 #[derive(Debug, Default, PartialEq, Clone, Copy)]

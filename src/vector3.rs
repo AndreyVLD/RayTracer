@@ -1,4 +1,5 @@
 use image::Rgb;
+use rand::Rng;
 use std::ops;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -31,6 +32,33 @@ impl Vector3 {
 
     pub fn to_rgb(self) -> Rgb<u8> {
         Rgb::from([self.x as u8, self.y as u8, self.z as u8])
+    }
+
+    pub fn random(min: f64, max: f64) -> Vector3 {
+        Vector3::new(
+            rand::rng().random_range(min..=max),
+            rand::rng().random_range(min..=max),
+            rand::rng().random_range(min..=max),
+        )
+    }
+
+    pub fn random_in_unit_sphere() -> Vector3 {
+        let azimuth = rand::rng().random_range(0.0..2.0 * std::f64::consts::PI);
+        let polar = rand::rng().random_range(0.0..std::f64::consts::PI);
+
+        let x = polar.sin() * azimuth.cos();
+        let y = polar.sin() * azimuth.sin();
+        let z = polar.cos();
+        Vector3::new(x, y, z)
+    }
+
+    pub fn random_on_hemisphere(normal: &Vector3) -> Vector3 {
+        let v = Vector3::random_in_unit_sphere();
+        if v.dot(normal) > 0.0 {
+            v
+        } else {
+            -v
+        }
     }
 }
 
@@ -69,6 +97,14 @@ impl ops::Sub for Vector3 {
 
     fn sub(self, rhs: Self) -> Self::Output {
         Vector3::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+    }
+}
+
+impl ops::Neg for Vector3 {
+    type Output = Vector3;
+
+    fn neg(self) -> Self::Output {
+        Vector3::new(-self.x, -self.y, -self.z)
     }
 }
 
@@ -183,6 +219,13 @@ mod tests {
     }
 
     #[test]
+    fn test_neg() {
+        let left = Vector3::new(1.0, 2.0, 3.0);
+        let right = Vector3::new(-1.0, -2.0, -3.0);
+        assert_eq!(-left, right);
+    }
+
+    #[test]
     fn test_mul_scalar() {
         let v = Vector3::new(1.0, 2.0, 3.0);
         let solution = Vector3::new(2.0, 4.0, 6.0);
@@ -214,5 +257,19 @@ mod tests {
         let v = Vector3::new(1.0, 2.0, 3.0);
         let solution = Vector3::new(0.5, 1.0, 1.5);
         assert_eq!(v / 2.0, solution);
+    }
+
+    #[test]
+    fn test_random() {
+        let v = Vector3::random(0.0, 1.0);
+        assert!(v.x <= 1.0 && v.x >= 0.0);
+        assert!(v.y <= 1.0 && v.y >= 0.0);
+        assert!(v.z <= 1.0 && v.z >= 0.0);
+    }
+
+    #[test]
+    fn test_random_in_unit_sphere() {
+        let v = Vector3::random_in_unit_sphere();
+        assert!(0.999 <= v.length() && v.length() <= 1.0);
     }
 }
