@@ -1,33 +1,6 @@
 use crate::ray::Ray;
+use crate::shapes::common::{HitRecord, Hittable, Surface};
 use crate::vector3::Vector3;
-
-#[derive(Debug, PartialEq)]
-pub struct HitRecord {
-    pub t: f64,
-    pub surface: Surface,
-    pub normal: Vector3,
-}
-
-impl HitRecord {
-    fn new(t: f64, surface: Surface, normal: Vector3) -> HitRecord {
-        HitRecord { t, surface, normal }
-    }
-}
-
-pub trait Hittable {
-    fn hit(&self, ray: &Ray) -> Option<HitRecord>;
-}
-
-#[derive(Debug, Default, PartialEq, Clone, Copy)]
-pub struct Surface {
-    pub albedo: Vector3,
-}
-
-impl Surface {
-    pub fn new(albedo: Vector3) -> Surface {
-        Surface { albedo }
-    }
-}
 
 pub struct Sphere {
     pub center: Vector3,
@@ -47,10 +20,10 @@ impl Sphere {
 
 impl Hittable for Sphere {
     fn hit(&self, ray: &Ray) -> Option<HitRecord> {
+        let oc = ray.origin - self.center;
         let a = ray.direction.dot(&ray.direction);
-        let b = 2.0 * ray.direction.dot(&(ray.origin - self.center));
-        let c =
-            (ray.origin - self.center).dot(&(ray.origin - self.center)) - self.radius * self.radius;
+        let b = 2.0 * ray.direction.dot(&oc);
+        let c = oc.dot(&oc) - self.radius * self.radius;
         let discriminant = b * b - 4.0 * a * c;
 
         if discriminant < 0.0 {
@@ -78,33 +51,6 @@ impl Hittable for Sphere {
         Some(HitRecord::new(solution, self.surface, normal))
     }
 }
-
-pub struct Quad {
-    pub bottom_left: Vector3,
-    pub top_left: Vector3,
-    pub top_right: Vector3,
-    pub bottom_right: Vector3,
-}
-
-impl Quad {
-    pub fn new(
-        bottom_left: Vector3,
-        top_left: Vector3,
-        top_right: Vector3,
-        bottom_right: Vector3,
-    ) -> Quad {
-        Quad {
-            bottom_right,
-            top_left,
-            top_right,
-            bottom_left,
-        }
-    }
-}
-
-// impl Hittable for Quad {
-//     fn hit(&self, ray: &Ray) -> Option<HitRecord> {}
-// }
 
 #[cfg(test)]
 mod tests {

@@ -1,8 +1,10 @@
 #![allow(dead_code)]
 use crate::ray::Ray;
+
 use crate::shapes::{HitRecord, Hittable};
 use crate::vector3::Vector3;
 use rand::{rng, Rng};
+
 pub struct Camera {
     aspect_ratio: f64,
     image_width: u32,

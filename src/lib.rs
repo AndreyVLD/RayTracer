@@ -1,12 +1,12 @@
+#![allow(non_snake_case)]
 mod camera;
 mod ray;
 mod shapes;
 mod vector3;
 
-use crate::shapes::{Hittable, Surface};
+use crate::shapes::{Hittable, Sphere, Surface};
 use crate::vector3::Vector3;
 use camera::Camera;
-use shapes::Sphere;
 
 pub fn generate_image(width: u32, aspect_ratio: f64) {
     let camera = Camera::new(width, aspect_ratio, 100);
