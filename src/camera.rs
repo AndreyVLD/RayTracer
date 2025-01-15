@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::ray::Ray;
-
 use crate::shapes::{HitRecord, Hittable};
+use crate::utils::linear_to_gamma;
 use crate::vector3::Vector3;
 use rand::{rng, Rng};
 
@@ -86,13 +86,13 @@ impl Camera {
 
         let a = 0.5 * (ray.direction.y + 1.0);
         let background_color =
-            (1.0 - a) * Vector3::new(255.0, 255.0, 255.0) + a * Vector3::new(127.5, 178.5, 255.0);
+            (1.0 - a) * Vector3::new(1.0, 1.0, 1.0) + a * Vector3::new(0.5, 0.7, 1.0);
 
         let mut min_ray_t = f64::INFINITY;
         let mut min_record: Option<HitRecord> = None;
 
         hittable.iter().for_each(|hittable| {
-            if let Some(hit_record) = hittable.hit(ray, (0.0001, f64::INFINITY)) {
+            if let Some(hit_record) = hittable.hit(ray, (0.001, f64::INFINITY)) {
                 if hit_record.t < min_ray_t {
                     min_ray_t = hit_record.t;
                     min_record = Some(hit_record);
@@ -118,6 +118,14 @@ impl Camera {
                 initial_color += color;
             }
             initial_color = initial_color / self.samples_per_pixel as f64;
+
+            // Apply a linear to gamma transform for gamma 2, clamping and conversion to bytes
+            initial_color = Vector3::new(
+                255.0 * linear_to_gamma(initial_color.x).clamp(0.0, 1.0),
+                255.0 * linear_to_gamma(initial_color.y).clamp(0.0, 1.0),
+                255.0 * linear_to_gamma(initial_color.z).clamp(0.0, 1.0),
+            );
+
             *pixel = initial_color.to_rgb();
         }
 
