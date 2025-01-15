@@ -4,6 +4,7 @@ use crate::shapes::{HitRecord, Hittable};
 use crate::utils::linear_to_gamma;
 use crate::vector3::Vector3;
 use rand::{rng, Rng};
+use rayon::prelude::*;
 
 pub struct Camera {
     aspect_ratio: f64,
@@ -109,25 +110,28 @@ impl Camera {
 
     pub fn render(&self, hittable: Vec<Box<dyn Hittable>>) {
         let mut imgbuf = image::ImageBuffer::new(self.image_width, self.image_height);
-        for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-            let mut initial_color = Vector3::default();
+        imgbuf
+            .enumerate_pixels_mut()
+            .par_bridge()
+            .for_each(|(x, y, pixel)| {
+                let mut initial_color = Vector3::default();
 
-            for _s in 0..self.samples_per_pixel {
-                let ray = self.get_ray(x, y);
-                let color = Self::ray_color(&ray, &hittable, self.max_depth);
-                initial_color += color;
-            }
-            initial_color = initial_color / self.samples_per_pixel as f64;
+                for _s in 0..self.samples_per_pixel {
+                    let ray = self.get_ray(x, y);
+                    let color = Self::ray_color(&ray, &hittable, self.max_depth);
+                    initial_color += color;
+                }
+                initial_color = initial_color / self.samples_per_pixel as f64;
 
-            // Apply a linear to gamma transform for gamma 2, clamping and conversion to bytes
-            initial_color = Vector3::new(
-                255.0 * linear_to_gamma(initial_color.x).clamp(0.0, 1.0),
-                255.0 * linear_to_gamma(initial_color.y).clamp(0.0, 1.0),
-                255.0 * linear_to_gamma(initial_color.z).clamp(0.0, 1.0),
-            );
+                // Apply a linear to gamma transform for gamma 2, clamping and conversion to bytes
+                initial_color = Vector3::new(
+                    255.0 * linear_to_gamma(initial_color.x).clamp(0.0, 1.0),
+                    255.0 * linear_to_gamma(initial_color.y).clamp(0.0, 1.0),
+                    255.0 * linear_to_gamma(initial_color.z).clamp(0.0, 1.0),
+                );
 
-            *pixel = initial_color.to_rgb();
-        }
+                *pixel = initial_color.to_rgb();
+            });
 
         if let Err(e) = imgbuf.save("output.png") {
             eprintln!("Failed to save image: {}", e);
