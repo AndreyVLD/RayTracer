@@ -100,7 +100,7 @@ impl Camera {
             }
         });
         if let Some(record) = min_record {
-            let direction = Vector3::random_on_hemisphere(&record.normal);
+            let direction = record.normal + Vector3::random_in_unit_sphere();
             0.5 * Self::ray_color(&Ray::new(record.poz, direction), hittable, depth - 1)
         } else {
             background_color
