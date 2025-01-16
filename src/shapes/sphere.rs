@@ -1,19 +1,20 @@
 use crate::ray::Ray;
-use crate::shapes::common::{HitRecord, Hittable, Surface};
+use crate::shapes::hit::{HitRecord, Hittable};
+use crate::shapes::material::Material;
 use crate::vector3::Vector3;
 
 pub struct Sphere {
     pub center: Vector3,
     pub radius: f64,
-    pub surface: Surface,
+    pub material: Box<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vector3, radius: f64) -> Sphere {
+    pub fn new(center: Vector3, radius: f64, material: Box<dyn Material>) -> Sphere {
         Sphere {
             center,
             radius,
-            surface: Surface::default(),
+            material,
         }
     }
 }
@@ -51,8 +52,8 @@ impl Hittable for Sphere {
         Some(HitRecord::new(
             solution,
             ray.point_at(solution),
-            self.surface,
             normal,
+            &*self.material,
         ))
     }
 }
@@ -60,66 +61,58 @@ impl Hittable for Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::shapes::Lambertian;
+
     #[test]
     fn test_sphere_intersection_miss_1() {
         let ray = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 1.0));
-        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0);
+        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0, material);
 
-        assert_eq!(sphere.hit(&ray, (-10.0, 10.0)), None);
+        assert!(sphere.hit(&ray, (-10.0, 10.0)).is_none());
     }
     #[test]
     fn test_sphere_intersection_miss_2() {
         let ray = Ray::new(Vector3::new(0.0, 0.0, -7.0), Vector3::new(0.0, 0.0, -1.0));
-        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0);
+        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0, material);
 
-        assert_eq!(sphere.hit(&ray, (-10.0, 10.0)), None);
+        assert!(sphere.hit(&ray, (-10.0, 10.0)).is_none());
     }
 
     #[test]
     fn test_sphere_intersection_hit() {
         let ray = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, -1.0));
-        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0);
+        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0, material);
+        let hit_record = sphere.hit(&ray, (-10.0, 10.0)).unwrap();
 
-        assert_eq!(
-            sphere.hit(&ray, (-10.0, 10.0)),
-            Some(HitRecord {
-                t: 4.0,
-                poz: Vector3::new(0.0, 0.0, -4.0),
-                surface: Surface::default(),
-                normal: Vector3::new(0.0, 0.0, 1.0),
-            })
-        );
+        assert_eq!(hit_record.t, 4.0);
+        assert_eq!(hit_record.poz, Vector3::new(0.0, 0.0, -4.0));
+        assert_eq!(hit_record.normal, Vector3::new(0.0, 0.0, 1.0));
     }
 
     #[test]
     fn test_sphere_intersection_tangent() {
         let ray = Ray::new(Vector3::new(1.0, 0.0, 0.0), Vector3::new(0.0, 0.0, -1.0));
-        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0);
+        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0, material);
+        let hit_record = sphere.hit(&ray, (-10.0, 10.0)).unwrap();
 
-        assert_eq!(
-            sphere.hit(&ray, (-10.0, 10.0)),
-            Some(HitRecord {
-                t: 5.0,
-                poz: Vector3::new(1.0, 0.0, -5.0),
-                surface: Surface::default(),
-                normal: Vector3::new(1.0, 0.0, 0.0)
-            })
-        );
+        assert_eq!(hit_record.t, 5.0);
+        assert_eq!(hit_record.poz, Vector3::new(1.0, 0.0, -5.0));
+        assert_eq!(hit_record.normal, Vector3::new(1.0, 0.0, 0.0));
     }
 
     #[test]
     fn test_sphere_intersection_inside() {
         let ray = Ray::new(Vector3::new(0.0, 0.0, -4.0), Vector3::new(0.0, 0.0, -1.0));
-        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 5.0);
+        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 5.0, material);
+        let hit_record = sphere.hit(&ray, (-10.0, 10.0)).unwrap();
 
-        assert_eq!(
-            sphere.hit(&ray, (-10.0, 10.0)),
-            Some(HitRecord {
-                t: 6.0,
-                poz: Vector3::new(0.0, 0.0, -10.0),
-                surface: Surface::default(),
-                normal: Vector3::new(0.0, 0.0, -1.0)
-            })
-        );
+        assert_eq!(hit_record.t, 6.0);
+        assert_eq!(hit_record.poz, Vector3::new(0.0, 0.0, -10.0));
+        assert_eq!(hit_record.normal, Vector3::new(0.0, 0.0, -1.0));
     }
 }

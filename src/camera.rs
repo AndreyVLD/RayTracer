@@ -101,8 +101,10 @@ impl Camera {
             }
         });
         if let Some(record) = min_record {
-            let direction = record.normal + Vector3::random_in_unit_sphere();
-            0.5 * Self::ray_color(&Ray::new(record.poz, direction), hittable, depth - 1)
+            if let Some((scattered, attenuation)) = record.material.scatter(ray, &record) {
+                return attenuation * Self::ray_color(&scattered, hittable, depth - 1);
+            }
+            Vector3::new(0.0, 0.0, 0.0)
         } else {
             background_color
         }

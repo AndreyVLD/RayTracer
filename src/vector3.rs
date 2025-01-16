@@ -35,16 +35,19 @@ impl Vector3 {
     }
 
     pub fn random(min: f64, max: f64) -> Vector3 {
+        let mut rng = rand::rng();
         Vector3::new(
-            rand::rng().random_range(min..=max),
-            rand::rng().random_range(min..=max),
-            rand::rng().random_range(min..=max),
+            rng.random_range(min..=max),
+            rng.random_range(min..=max),
+            rng.random_range(min..=max),
         )
     }
 
     pub fn random_in_unit_sphere() -> Vector3 {
-        let azimuth = rand::rng().random_range(0.0..2.0 * std::f64::consts::PI);
-        let polar = rand::rng().random_range(0.0..std::f64::consts::PI);
+        let mut rng = rand::rng();
+
+        let azimuth = rng.random_range(0.0..2.0 * std::f64::consts::PI);
+        let polar = rng.random_range(0.0..std::f64::consts::PI);
 
         let x = polar.sin() * azimuth.cos();
         let y = polar.sin() * azimuth.sin();
@@ -59,6 +62,12 @@ impl Vector3 {
         } else {
             -v
         }
+    }
+
+    pub fn is_near_zero(&self) -> bool {
+        let s = 1e-8;
+
+        (self.x.abs() < s) && (self.y.abs() < s) && (self.z.abs() < s)
     }
 }
 
