@@ -18,6 +18,9 @@ pub struct Camera {
     pixel_delta_u: Vector3,
     pixel_delta_v: Vector3,
     pixel00_loc: Vector3,
+    defocus_angle: f64,
+    defocus_disk_u: Vector3,
+    defocus_disk_v: Vector3,
 }
 
 impl Camera {
@@ -30,6 +33,8 @@ impl Camera {
         look_from: Vector3,
         look_at: Vector3,
         vup: Vector3,
+        defocus_angle: f64,
+        focus_dist: f64,
     ) -> Camera {
         let mut image_height = (image_width as f64 / aspect_ratio) as u32;
         if image_height < 1 {
@@ -37,10 +42,9 @@ impl Camera {
         }
         let camera_center = look_from;
 
-        let focal_length = (look_from - look_at).length();
         let theta = vfov.to_radians();
         let h = (theta / 2.0).tan();
-        let viewport_height = 2.0 * h * focal_length;
+        let viewport_height = 2.0 * h * focus_dist;
 
         let w = (look_from - look_at).normalize();
         let u = vup.cross(&w).normalize();
@@ -54,9 +58,13 @@ impl Camera {
         let pixel_delta_v = viewport_v / (image_height as f64);
 
         let viewport_upper_left =
-            camera_center - focal_length * w - viewport_u / 2.0 - viewport_v / 2.0;
+            camera_center - focus_dist * w - viewport_u / 2.0 - viewport_v / 2.0;
 
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+        let defocus_radius = focus_dist * (defocus_angle / 2.0).to_radians().tan();
+        let defocus_disk_u = u * defocus_radius;
+        let defocus_disk_v = v * defocus_radius;
 
         Camera {
             aspect_ratio,
@@ -69,6 +77,9 @@ impl Camera {
             pixel_delta_u,
             pixel_delta_v,
             pixel00_loc,
+            defocus_angle,
+            defocus_disk_u,
+            defocus_disk_v,
         }
     }
 
@@ -77,16 +88,28 @@ impl Camera {
     }
 
     fn get_ray(&self, x: u32, y: u32) -> Ray {
-        let offset_x = rng().random::<f64>() - 0.5;
-        let offset_y = rng().random::<f64>() - 0.5;
+        let mut rng = rng();
+        let offset_x = rng.random::<f64>() - 0.5;
+        let offset_y = rng.random::<f64>() - 0.5;
 
         let pixel_sample = self.pixel00_loc
             + ((x as f64 + offset_x) * self.pixel_delta_u)
             + ((y as f64 + offset_y) * self.pixel_delta_v);
 
-        let ray_direction = pixel_sample - self.camera_center;
+        let ray_origin = if self.defocus_angle <= 0.0 {
+            self.camera_center
+        } else {
+            self.defocus_disk_sample()
+        };
 
-        Ray::new(self.camera_center, ray_direction)
+        let ray_direction = pixel_sample - ray_origin;
+
+        Ray::new(ray_origin, ray_direction)
+    }
+
+    fn defocus_disk_sample(&self) -> Vector3 {
+        let p = Vector3::random_in_unit_disk();
+        self.camera_center + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
     fn ray_color(ray: &Ray, hittable: &[Box<dyn Hittable>], depth: u32) -> Vector3 {

@@ -19,6 +19,8 @@ pub fn generate_image(width: u32, aspect_ratio: f64) {
         Vector3::new(-2.0, 2.0, 1.0),
         Vector3::new(0.0, 0.0, -1.0),
         Vector3::new(0.0, 1.0, 0.0),
+        10.0,
+        3.4,
     );
 
     let material_ground = Box::new(Lambertian::new(Vector3::new(0.8, 0.8, 0.0)));

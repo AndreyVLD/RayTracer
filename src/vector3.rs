@@ -49,6 +49,14 @@ impl Vector3 {
         )
     }
 
+    pub fn random_in_unit_disk() -> Vector3 {
+        let mut rng = rand::rng();
+        let theta = rng.random_range(0.0..std::f64::consts::PI * 2.0);
+        let x = theta.cos();
+        let y = theta.sin();
+        Vector3::new(x, y, 0.0)
+    }
+
     pub fn random_in_unit_sphere() -> Vector3 {
         let mut rng = rand::rng();
 
