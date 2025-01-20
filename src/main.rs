@@ -4,71 +4,97 @@ mod shapes;
 mod utils;
 mod vector3;
 
-use crate::shapes::{Dielectric, Hittable, Lambertian, Metal, Sphere};
+use crate::shapes::{Dielectric, Hittable, Lambertian, Material, Metal, Sphere};
 use crate::vector3::Vector3;
 use camera::Camera;
+use rand::{random, Rng};
 use std::time::Instant;
 
-pub fn generate_image(width: u32, aspect_ratio: f64) {
+pub fn generate_image() {
     let camera = Camera::new(
-        width,
-        aspect_ratio,
-        100,
+        1920,
+        16.0 / 9.0,
+        500,
         50,
         20.0,
-        Vector3::new(-2.0, 2.0, 1.0),
-        Vector3::new(0.0, 0.0, -1.0),
+        Vector3::new(13.0, 2.0, 3.0),
+        Vector3::new(0.0, 0.0, 0.0),
         Vector3::new(0.0, 1.0, 0.0),
+        0.2,
         10.0,
-        3.4,
     );
 
-    let material_ground = Box::new(Lambertian::new(Vector3::new(0.8, 0.8, 0.0)));
-    let material_center = Box::new(Lambertian::new(Vector3::new(0.1, 0.2, 0.5)));
-    let material_left = Box::new(Dielectric::new(1.5));
-    let material_bubble = Box::new(Dielectric::new(1.0 / 1.5));
-    let material_right = Box::new(Metal::new(Vector3::new(0.8, 0.6, 0.2), 1.0));
-
-    let sphere_1 = Box::new(Sphere::new(
-        Vector3::new(0.0, -100.5, -1.0),
-        100.0,
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+    let material_ground = Box::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5)));
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, -1000.0, 0.0),
+        1000.0,
         material_ground,
-    ));
+    )));
 
-    let sphere_2 = Box::new(Sphere::new(
-        Vector3::new(0.0, 0.0, -1.2),
-        0.5,
-        material_center,
-    ));
+    let mut rng = rand::rng();
 
-    let sphere_3 = Box::new(Sphere::new(
-        Vector3::new(-1.0, 0.0, -1.0),
-        0.5,
-        material_left,
-    ));
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rng.random::<f64>();
+            let center = Vector3::new(
+                a as f64 + 0.9 * random::<f64>(),
+                0.2,
+                b as f64 + 0.9 * random::<f64>(),
+            );
 
-    let sphere_4 = Box::new(Sphere::new(
-        Vector3::new(1.0, 0.0, -1.0),
-        0.5,
-        material_right,
-    ));
+            if (center - Vector3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                let material: Box<dyn Material>;
+                match choose_mat {
+                    0.0..0.8 => {
+                        // diffuse
+                        let albdeo = Vector3::random(0.0, 1.0) * Vector3::random(0.0, 1.0);
+                        material = Box::new(Lambertian::new(albdeo));
+                        world.push(Box::new(Sphere::new(center, 0.2, material)));
+                    }
+                    0.8..0.95 => {
+                        // metal
+                        let albedo = Vector3::random(0.5, 1.0);
+                        let fuzz = rng.random_range(0.0..0.5);
+                        material = Box::new(Metal::new(albedo, fuzz));
+                        world.push(Box::new(Sphere::new(center, 0.2, material)));
+                    }
+                    _ => {
+                        // glass
+                        material = Box::new(Dielectric::new(1.5));
+                        world.push(Box::new(Sphere::new(center, 0.2, material)));
+                    }
+                }
+            }
+        }
+    }
+    let material_1 = Box::new(Dielectric::new(1.5));
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, 1.0, 0.0),
+        1.0,
+        material_1,
+    )));
 
-    let sphere_5 = Box::new(Sphere::new(
-        Vector3::new(-1.0, 0.0, -1.0),
-        0.4,
-        material_bubble,
-    ));
+    let material_2 = Box::new(Lambertian::new(Vector3::new(0.4, 0.2, 0.1)));
+    world.push(Box::new(Sphere::new(
+        Vector3::new(-4.0, 1.0, 0.0),
+        1.0,
+        material_2,
+    )));
 
-    let hittable: Vec<Box<dyn Hittable>> = vec![sphere_1, sphere_2, sphere_3, sphere_4, sphere_5];
-    camera.render(hittable);
+    let material_3 = Box::new(Metal::new(Vector3::new(0.7, 0.6, 0.5), 0.0));
+    world.push(Box::new(Sphere::new(
+        Vector3::new(4.0, 1.0, 0.0),
+        1.0,
+        material_3,
+    )));
+
+    camera.render(world);
 }
 
 fn main() {
-    const WIDTH: u32 = 1920;
-    const ASPECT_RATIO: f64 = 16.0 / 9.0;
-
     let now = Instant::now();
-    generate_image(WIDTH, ASPECT_RATIO);
+    generate_image();
     println!(
         "Time elapsed in generate image: {} ms",
         now.elapsed().as_millis()
