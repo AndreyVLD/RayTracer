@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(clippy::too_many_arguments)]
 use crate::ray::Ray;
 use crate::shapes::{HitRecord, Hittable};
 use crate::utils::linear_to_gamma;
@@ -25,27 +26,35 @@ impl Camera {
         aspect_ratio: f64,
         samples_per_pixel: u32,
         max_depth: u32,
+        vfov: f64,
+        look_from: Vector3,
+        look_at: Vector3,
+        vup: Vector3,
     ) -> Camera {
         let mut image_height = (image_width as f64 / aspect_ratio) as u32;
         if image_height < 1 {
             image_height = 1;
         }
-        let camera_center = Vector3::new(0.0, 0.0, 0.0);
+        let camera_center = look_from;
 
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let focal_length = (look_from - look_at).length();
+        let theta = vfov.to_radians();
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
+
+        let w = (look_from - look_at).normalize();
+        let u = vup.cross(&w).normalize();
+        let v = w.cross(&u);
 
         let viewport_width = viewport_height * (image_width as f64) / (image_height as f64);
-        let viewport_u = Vector3::new(viewport_width, 0.0, 0.0);
-        let viewport_v = Vector3::new(0.0, -viewport_height, 0.0);
+        let viewport_u = viewport_width * u;
+        let viewport_v = viewport_height * -v;
 
         let pixel_delta_u = viewport_u / (image_width as f64);
         let pixel_delta_v = viewport_v / (image_height as f64);
 
-        let viewport_upper_left = camera_center
-            - Vector3::new(0.0, 0.0, focal_length)
-            - viewport_u / 2.0
-            - viewport_v / 2.0;
+        let viewport_upper_left =
+            camera_center - focal_length * w - viewport_u / 2.0 - viewport_v / 2.0;
 
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 

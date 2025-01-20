@@ -29,6 +29,12 @@ impl Vector3 {
     pub fn dot(&self, rhs: &Vector3) -> f64 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
+    pub fn cross(&self, rhs: &Vector3) -> Vector3 {
+        let x = (self.y * rhs.z) - (self.z * rhs.y);
+        let y = (self.z * rhs.x) - (self.x * rhs.z);
+        let z = (self.x * rhs.y) - (self.y * rhs.x);
+        Vector3::new(x, y, z)
+    }
 
     pub fn to_rgb(self) -> Rgb<u8> {
         Rgb::from([self.x as u8, self.y as u8, self.z as u8])
