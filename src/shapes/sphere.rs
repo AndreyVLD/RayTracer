@@ -35,26 +35,23 @@ impl Hittable for Sphere {
         let first_root = (-b - sqrt_d) / (2.0 * a);
         let second_root = (-b + sqrt_d) / (2.0 * a);
 
-        let solution = if first_root >= 0.0 {
+        let solution = if first_root > interval.0 {
             first_root
-        } else if second_root >= 0.0 {
+        } else if second_root > interval.0 {
             second_root
         } else {
             return None;
         };
 
-        if !(solution >= interval.0 && solution <= interval.1) {
+        if solution > interval.1 {
             return None;
         }
 
-        let normal = (ray.point_at(solution) - self.center).normalize();
+        let outward_normal = (ray.point_at(solution) - self.center).normalize();
+        let mut hit = HitRecord::new(solution, ray.point_at(solution), &*self.material);
+        hit.set_face_normal(ray, &outward_normal);
 
-        Some(HitRecord::new(
-            solution,
-            ray.point_at(solution),
-            normal,
-            &*self.material,
-        ))
+        Some(hit)
     }
 }
 
@@ -113,6 +110,6 @@ mod tests {
 
         assert_eq!(hit_record.t, 6.0);
         assert_eq!(hit_record.poz, Vector3::new(0.0, 0.0, -10.0));
-        assert_eq!(hit_record.normal, Vector3::new(0.0, 0.0, -1.0));
+        assert_eq!(hit_record.normal, Vector3::new(-0.0, -0.0, 1.0));
     }
 }
