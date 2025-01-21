@@ -14,8 +14,8 @@ pub fn generate_image() {
     let camera = Camera::new(
         1920,
         16.0 / 9.0,
-        500,
-        50,
+        20,
+        10,
         20.0,
         Vector3::new(13.0, 2.0, 3.0),
         Vector3::new(0.0, 0.0, 0.0),
