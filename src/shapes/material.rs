@@ -2,7 +2,6 @@ use crate::ray::Ray;
 use crate::shapes::HitRecord;
 use crate::utils::{reflect, refract};
 use crate::vector3::Vector3;
-use rand::random;
 use std::fmt::Debug;
 
 pub trait Material: Send + Sync + Debug {
@@ -92,7 +91,7 @@ impl Material for Dielectric {
         let cannot_refract = refraction_ratio * sin_theta > 1.0;
 
         let direction = if cannot_refract
-            || Self::reflectance(cos_theta, self.refraction_index) > random::<f64>()
+            || Self::reflectance(cos_theta, self.refraction_index) > fastrand::f64()
         {
             reflect(ray.direction, hit_record.normal)
         } else {

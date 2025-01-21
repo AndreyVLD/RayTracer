@@ -7,7 +7,6 @@ mod vector3;
 use crate::shapes::{Dielectric, Hittable, Lambertian, Material, Metal, Sphere};
 use crate::vector3::Vector3;
 use camera::Camera;
-use rand::{random, Rng};
 use std::time::Instant;
 
 pub fn generate_image() {
@@ -32,15 +31,13 @@ pub fn generate_image() {
         material_ground,
     )));
 
-    let mut rng = rand::rng();
-
     for a in -11..11 {
         for b in -11..11 {
-            let choose_mat = rng.random::<f64>();
+            let choose_mat = fastrand::f64();
             let center = Vector3::new(
-                a as f64 + 0.9 * random::<f64>(),
+                a as f64 + 0.9 * fastrand::f64(),
                 0.2,
-                b as f64 + 0.9 * random::<f64>(),
+                b as f64 + 0.9 * fastrand::f64(),
             );
 
             if (center - Vector3::new(4.0, 0.2, 0.0)).length() > 0.9 {
@@ -55,7 +52,7 @@ pub fn generate_image() {
                     0.8..0.95 => {
                         // metal
                         let albedo = Vector3::random(0.5, 1.0);
-                        let fuzz = rng.random_range(0.0..0.5);
+                        let fuzz = fastrand::f64() * 0.5;
                         material = Box::new(Metal::new(albedo, fuzz));
                         world.push(Box::new(Sphere::new(center, 0.2, material)));
                     }

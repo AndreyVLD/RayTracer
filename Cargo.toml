@@ -5,5 +5,5 @@ edition = "2021"
 
 [dependencies]
 image = "0.25.5"
-rand = "0.9.0-beta.1"
+fastrand = "2.3.0"
 rayon = "1.10.0"

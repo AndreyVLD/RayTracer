@@ -1,5 +1,4 @@
 use image::Rgb;
-use rand::Rng;
 use std::ops;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -41,27 +40,23 @@ impl Vector3 {
     }
 
     pub fn random(min: f64, max: f64) -> Vector3 {
-        let mut rng = rand::rng();
         Vector3::new(
-            rng.random_range(min..=max),
-            rng.random_range(min..=max),
-            rng.random_range(min..=max),
+            fastrand::f64() * (max - min) + min,
+            fastrand::f64() * (max - min) + min,
+            fastrand::f64() * (max - min) + min,
         )
     }
 
     pub fn random_in_unit_disk() -> Vector3 {
-        let mut rng = rand::rng();
-        let theta = rng.random_range(0.0..std::f64::consts::PI * 2.0);
+        let theta = fastrand::f64() * std::f64::consts::PI * 2.0;
         let x = theta.cos();
         let y = theta.sin();
         Vector3::new(x, y, 0.0)
     }
 
     pub fn random_in_unit_sphere() -> Vector3 {
-        let mut rng = rand::rng();
-
-        let azimuth = rng.random_range(0.0..2.0 * std::f64::consts::PI);
-        let polar = rng.random_range(0.0..std::f64::consts::PI);
+        let azimuth = fastrand::f64() * 2.0 * std::f64::consts::PI;
+        let polar = fastrand::f64() * std::f64::consts::PI;
 
         let x = polar.sin() * azimuth.cos();
         let y = polar.sin() * azimuth.sin();

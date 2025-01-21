@@ -4,7 +4,6 @@ use crate::ray::Ray;
 use crate::shapes::{HitRecord, Hittable};
 use crate::utils::linear_to_gamma;
 use crate::vector3::Vector3;
-use rand::{rng, Rng};
 use rayon::prelude::*;
 
 pub struct Camera {
@@ -88,9 +87,8 @@ impl Camera {
     }
 
     fn get_ray(&self, x: u32, y: u32) -> Ray {
-        let mut rng = rng();
-        let offset_x = rng.random::<f64>() - 0.5;
-        let offset_y = rng.random::<f64>() - 0.5;
+        let offset_x = fastrand::f64() - 0.5;
+        let offset_y = fastrand::f64() - 0.5;
 
         let pixel_sample = self.pixel00_loc
             + ((x as f64 + offset_x) * self.pixel_delta_u)
