@@ -7,6 +7,7 @@ mod vector3;
 use crate::shapes::{Dielectric, Hittable, Lambertian, Material, Metal, Sphere};
 use crate::vector3::Vector3;
 use camera::Camera;
+use std::io::{self, Read};
 use std::time::Instant;
 
 pub fn generate_image() {
@@ -96,4 +97,8 @@ fn main() {
         "Time elapsed in generate image: {} ms",
         now.elapsed().as_millis()
     );
+
+    println!("Press any key to close...");
+    let mut buffer = [0; 1];
+    let _ = io::stdin().read(&mut buffer);
 }

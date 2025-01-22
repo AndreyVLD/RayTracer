@@ -1,10 +1,13 @@
 #![allow(dead_code)]
 #![allow(clippy::too_many_arguments)]
+
 use crate::ray::Ray;
 use crate::shapes::{HitRecord, Hittable};
 use crate::utils::linear_to_gamma;
 use crate::vector3::Vector3;
 use rayon::prelude::*;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
 pub struct Camera {
     aspect_ratio: f64,
@@ -141,6 +144,9 @@ impl Camera {
     }
 
     pub fn render(&self, hittable: Vec<Box<dyn Hittable>>) {
+        let progress = Arc::new(AtomicUsize::new(0));
+        let total_pixels = (self.image_width * self.image_height) as usize;
+
         let mut imgbuf = image::ImageBuffer::new(self.image_width, self.image_height);
         imgbuf
             .enumerate_pixels_mut()
@@ -163,6 +169,12 @@ impl Camera {
                 );
 
                 *pixel = initial_color.to_rgb();
+
+                let current_progress = progress.fetch_add(1, Ordering::SeqCst) + 1;
+
+                if current_progress % (total_pixels / 10) == 0 {
+                    println!("Progress: {}%", (current_progress * 100) / total_pixels);
+                }
             });
 
         if let Err(e) = imgbuf.save("output.png") {
