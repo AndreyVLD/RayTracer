@@ -147,6 +147,8 @@ impl Camera {
         let progress = Arc::new(AtomicUsize::new(0));
         let total_pixels = (self.image_width * self.image_height) as usize;
 
+        println!("Rendering...");
+
         let mut imgbuf = image::ImageBuffer::new(self.image_width, self.image_height);
         imgbuf
             .enumerate_pixels_mut()
@@ -179,6 +181,8 @@ impl Camera {
 
         if let Err(e) = imgbuf.save("output.png") {
             eprintln!("Failed to save image: {}", e);
+        } else {
+            println!("Successfully saved image to output.png");
         }
     }
 }
