@@ -8,16 +8,20 @@ pub struct HitRecord<'a> {
     pub normal: Vector3,
     pub front_face: bool,
     pub material: &'a dyn Material,
+    pub u: f64,
+    pub v: f64,
 }
 
 impl<'a> HitRecord<'a> {
-    pub fn new(t: f64, poz: Vector3, material: &'a dyn Material) -> Self {
+    pub fn new(t: f64, poz: Vector3, material: &'a dyn Material, u: f64, v: f64) -> Self {
         HitRecord {
             t,
             poz,
             front_face: false,
             normal: Vector3::default(),
             material,
+            u,
+            v,
         }
     }
 

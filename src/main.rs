@@ -1,16 +1,18 @@
 mod camera;
 mod ray;
 mod shapes;
+mod texture;
 mod utils;
 mod vector3;
 
 use crate::shapes::{Dielectric, Hittable, Lambertian, Material, Metal, Sphere};
+use crate::texture::CheckerTexture;
 use crate::vector3::Vector3;
 use camera::Camera;
 use std::io::{self, Read};
 use std::time::Instant;
 
-pub fn generate_image() {
+pub fn spheres() {
     let camera = Camera::new(
         1920,
         16.0 / 9.0,
@@ -23,9 +25,15 @@ pub fn generate_image() {
         0.2,
         10.0,
     );
-
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
-    let material_ground = Box::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5)));
+
+    let checker = Box::new(CheckerTexture::new(
+        3.0,
+        Vector3::new(0.2, 0.3, 0.1),
+        Vector3::new(0.9, 0.9, 0.9),
+    ));
+
+    let material_ground = Box::new(Lambertian::from_texture(checker));
     world.push(Box::new(Sphere::new(
         Vector3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -92,7 +100,10 @@ pub fn generate_image() {
 
 fn main() {
     let now = Instant::now();
-    generate_image();
+
+    // Scenes to be rendered
+    spheres();
+
     println!(
         "Time elapsed in generate image: {} ms",
         now.elapsed().as_millis()

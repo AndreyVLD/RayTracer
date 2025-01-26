@@ -4,9 +4,9 @@ use crate::shapes::material::Material;
 use crate::vector3::Vector3;
 
 pub struct Sphere {
-    pub center: Vector3,
-    pub radius: f64,
-    pub material: Box<dyn Material>,
+    center: Vector3,
+    radius: f64,
+    material: Box<dyn Material>,
 }
 
 impl Sphere {
@@ -48,7 +48,7 @@ impl Hittable for Sphere {
         }
 
         let outward_normal = (ray.point_at(solution) - self.center).normalize();
-        let mut hit = HitRecord::new(solution, ray.point_at(solution), &*self.material);
+        let mut hit = HitRecord::new(solution, ray.point_at(solution), &*self.material, 0.0, 0.0);
         hit.set_face_normal(ray, &outward_normal);
 
         Some(hit)

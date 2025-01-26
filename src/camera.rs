@@ -144,7 +144,7 @@ impl Camera {
     }
 
     pub fn render(&self, hittable: Vec<Box<dyn Hittable>>) {
-        let progress = Arc::new(AtomicUsize::new(0));
+        let progress = Arc::new(AtomicUsize::new(10));
         let total_pixels = (self.image_width * self.image_height) as usize;
 
         println!("Rendering...");
@@ -172,14 +172,14 @@ impl Camera {
 
                 *pixel = initial_color.to_rgb();
 
-                let current_progress = progress.fetch_add(1, Ordering::SeqCst) + 1;
+                let current_progress = progress.fetch_add(1, Ordering::Relaxed);
 
                 if current_progress % (total_pixels / 10) == 0 {
                     println!("Progress: {}%", (current_progress * 100) / total_pixels);
                 }
             });
 
-        if let Err(e) = imgbuf.save("output.png") {
+        if let Err(e) = imgbuf.save("output_debug.png") {
             eprintln!("Failed to save image: {}", e);
         } else {
             println!("Successfully saved image to output.png");

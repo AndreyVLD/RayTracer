@@ -1,5 +1,6 @@
 use crate::ray::Ray;
 use crate::shapes::HitRecord;
+use crate::texture::{SolidTexture, Texture};
 use crate::utils::{reflect, refract};
 use crate::vector3::Vector3;
 use std::fmt::Debug;
@@ -8,9 +9,9 @@ pub trait Material: Send + Sync + Debug {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Ray, Vector3)>;
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Lambertian {
-    albedo: Vector3,
+    texture: Box<dyn Texture>,
 }
 
 impl Material for Lambertian {
@@ -22,14 +23,22 @@ impl Material for Lambertian {
         }
 
         let scattered = Ray::new(hit_record.poz, scatter_direction);
-        let attenuation = self.albedo;
+        let attenuation = self
+            .texture
+            .value(hit_record.u, hit_record.v, &hit_record.poz);
         Some((scattered, attenuation))
     }
 }
 
 impl Lambertian {
     pub fn new(albedo: Vector3) -> Lambertian {
-        Lambertian { albedo }
+        Lambertian {
+            texture: Box::new(SolidTexture::new(albedo)),
+        }
+    }
+
+    pub fn from_texture(texture: Box<dyn Texture>) -> Lambertian {
+        Lambertian { texture }
     }
 }
 

@@ -1,10 +1,10 @@
 use crate::vector3::Vector3;
 
 pub struct Quad {
-    pub bottom_left: Vector3,
-    pub top_left: Vector3,
-    pub top_right: Vector3,
-    pub bottom_right: Vector3,
+    bottom_left: Vector3,
+    top_left: Vector3,
+    top_right: Vector3,
+    bottom_right: Vector3,
 }
 
 impl Quad {
