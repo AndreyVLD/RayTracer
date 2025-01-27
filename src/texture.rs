@@ -1,5 +1,8 @@
+#![allow(unused)]
 use crate::vector3::Vector3;
+use image::{DynamicImage, GenericImageView, ImageReader};
 use std::fmt::Debug;
+use std::path::{Path, PathBuf};
 
 pub trait Texture: Send + Sync + Debug {
     fn value(&self, u: f64, v: f64, point: &Vector3) -> Vector3;
@@ -57,5 +60,65 @@ impl Texture for CheckerTexture {
         } else {
             self.odd.value(u, v, p)
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct ImageTexture {
+    data: DynamicImage,
+}
+
+impl ImageTexture {
+    pub fn new(file_name: &str) -> ImageTexture {
+        if let Some(path) = Self::find_file(file_name) {
+            let image_reader = ImageReader::open(path).expect("Failed to open image file");
+            let image_data = image_reader.decode().expect("Failed to decode image");
+            ImageTexture { data: image_data }
+        } else {
+            eprintln!("Failed to find image file");
+            ImageTexture {
+                data: DynamicImage::new_rgb8(0, 0),
+            }
+        }
+    }
+
+    fn find_file(file_name: &str) -> Option<PathBuf> {
+        let paths_to_check = [
+            file_name,
+            &format!("./{}", file_name),
+            &format!("textures/{}", file_name),
+            &format!("../textures/{}", file_name),
+            &format!("../../textures/{}", file_name),
+            &format!("../../../textures/{}", file_name),
+            &format!("../../../../textures/{}", file_name),
+        ];
+
+        paths_to_check
+            .iter()
+            .map(Path::new)
+            .find(|path| path.exists())
+            .map(Path::to_path_buf)
+    }
+}
+
+impl Texture for ImageTexture {
+    fn value(&self, mut u: f64, mut v: f64, p: &Vector3) -> Vector3 {
+        if self.data.height() == 0 {
+            return Vector3::new(0.0, 1.0, 1.0);
+        }
+
+        u = u.clamp(0.0, 1.0);
+        v = 1.0 - v.clamp(0.0, 1.0);
+
+        let i = (u * (self.data.width() as f64)) as u32;
+        let j = (v * (self.data.height() as f64)) as u32;
+
+        let pixel = self.data.get_pixel(i, j);
+        let r_srgb = pixel[0] as f64 / 255.0;
+        let g_srgb = pixel[1] as f64 / 255.0;
+        let b_srgb = pixel[2] as f64 / 255.0;
+
+        // Convert texture from Gamma to Linear colors
+        Vector3::new(r_srgb.powf(2.2), g_srgb.powf(2.2), b_srgb.powf(2.2))
     }
 }

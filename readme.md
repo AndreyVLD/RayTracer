@@ -1,6 +1,6 @@
 # Ray Tracer
 
-![output.png](output.png)
+![output.png](outputs/output.png)
 
 A ray tracer implemented in Rust, inspired by the *Ray Tracing in One Weekend* book.
 The project renders 3D scenes with spheres, materials, and basic shading.

@@ -17,6 +17,15 @@ impl Sphere {
             material,
         }
     }
+
+    fn get_sphere_uv(p: Vector3) -> (f64, f64) {
+        let phi = (-p.z).atan2(p.x) + std::f64::consts::PI;
+        let theta = (-p.y).acos();
+
+        let u = phi / (2.0 * std::f64::consts::PI);
+        let v = theta / std::f64::consts::PI;
+        (u, v)
+    }
 }
 
 impl Hittable for Sphere {
@@ -48,7 +57,8 @@ impl Hittable for Sphere {
         }
 
         let outward_normal = (ray.point_at(solution) - self.center).normalize();
-        let mut hit = HitRecord::new(solution, ray.point_at(solution), &*self.material, 0.0, 0.0);
+        let (u, v) = Sphere::get_sphere_uv(outward_normal);
+        let mut hit = HitRecord::new(solution, ray.point_at(solution), &*self.material, u, v);
         hit.set_face_normal(ray, &outward_normal);
 
         Some(hit)

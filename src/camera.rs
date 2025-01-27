@@ -36,7 +36,7 @@ impl Camera {
         look_at: Vector3,
         vup: Vector3,
         defocus_angle: f64,
-        focus_dist: f64,
+        mut focus_dist: f64,
     ) -> Camera {
         let mut image_height = (image_width as f64 / aspect_ratio) as u32;
         if image_height < 1 {
@@ -46,6 +46,11 @@ impl Camera {
 
         let theta = vfov.to_radians();
         let h = (theta / 2.0).tan();
+
+        if focus_dist <= 0.0 {
+            focus_dist = 1.0;
+        }
+
         let viewport_height = 2.0 * h * focus_dist;
 
         let w = (look_from - look_at).normalize();
@@ -179,10 +184,11 @@ impl Camera {
                 }
             });
 
-        if let Err(e) = imgbuf.save("output_debug.png") {
+        let output_name = "output_debug.png";
+        if let Err(e) = imgbuf.save(output_name) {
             eprintln!("Failed to save image: {}", e);
         } else {
-            println!("Successfully saved image to output.png");
+            println!("Successfully saved image to {}", output_name);
         }
     }
 }

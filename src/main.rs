@@ -6,7 +6,7 @@ mod utils;
 mod vector3;
 
 use crate::shapes::{Dielectric, Hittable, Lambertian, Material, Metal, Sphere};
-use crate::texture::CheckerTexture;
+use crate::texture::{CheckerTexture, ImageTexture};
 use crate::vector3::Vector3;
 use camera::Camera;
 use std::io::{self, Read};
@@ -98,11 +98,85 @@ pub fn spheres() {
     camera.render(world);
 }
 
+fn checkered_spheres() {
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+    let checker_1 = Box::new(CheckerTexture::new(
+        3.0,
+        Vector3::new(0.2, 0.3, 0.1),
+        Vector3::new(0.9, 0.9, 0.9),
+    ));
+
+    let checker_2 = Box::new(CheckerTexture::new(
+        3.0,
+        Vector3::new(0.2, 0.3, 0.1),
+        Vector3::new(0.9, 0.9, 0.9),
+    ));
+
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, -10.0, 0.0),
+        10.0,
+        Box::new(Lambertian::from_texture(checker_1)),
+    )));
+
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, 10.0, 0.0),
+        10.0,
+        Box::new(Lambertian::from_texture(checker_2)),
+    )));
+
+    let camera = Camera::new(
+        400,
+        16.0 / 9.0,
+        100,
+        50,
+        20.0,
+        Vector3::new(13.0, 2.0, 3.0),
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        0.0,
+        0.0,
+    );
+
+    camera.render(world);
+}
+
+fn earth() {
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+    let earth_texture = Box::new(ImageTexture::new("earthmap.jpg"));
+    let earth_surface = Box::new(Lambertian::from_texture(earth_texture));
+
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, 0.0, 0.0),
+        2.0,
+        earth_surface,
+    )));
+
+    let camera = Camera::new(
+        400,
+        16.0 / 9.0,
+        100,
+        50,
+        20.0,
+        Vector3::new(0.0, 0.0, 12.0),
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        0.0,
+        0.0,
+    );
+
+    camera.render(world);
+}
+
 fn main() {
     let now = Instant::now();
 
     // Scenes to be rendered
-    spheres();
+    match 3 {
+        1 => spheres(),
+        2 => checkered_spheres(),
+        3 => earth(),
+        _ => {}
+    }
 
     println!(
         "Time elapsed in generate image: {} ms",

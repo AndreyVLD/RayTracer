@@ -2,7 +2,7 @@ use crate::vector3::Vector3;
 
 pub fn linear_to_gamma(linear_component: f64) -> f64 {
     if linear_component > 0.0 {
-        return linear_component.sqrt();
+        return linear_component.powf(1.0 / 2.2);
     }
     0.0
 }

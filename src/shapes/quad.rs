@@ -1,3 +1,4 @@
+#![allow(unused)]
 use crate::vector3::Vector3;
 
 pub struct Quad {
