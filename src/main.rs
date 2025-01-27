@@ -5,6 +5,7 @@ mod texture;
 mod utils;
 mod vector3;
 
+use crate::shapes::quad::Quad;
 use crate::shapes::{Dielectric, Hittable, Lambertian, Material, Metal, Sphere};
 use crate::texture::{CheckerTexture, ImageTexture};
 use crate::vector3::Vector3;
@@ -167,14 +168,78 @@ fn earth() {
     camera.render(world);
 }
 
+fn quads() {
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+
+    // Materials
+    let left_red = Box::new(Lambertian::new(Vector3::new(1.0, 0.2, 0.2)));
+    let back_green = Box::new(Lambertian::new(Vector3::new(0.2, 1.0, 0.2)));
+    let right_blue = Box::new(Lambertian::new(Vector3::new(0.2, 0.2, 1.0)));
+    let upper_orange = Box::new(Lambertian::new(Vector3::new(1.0, 0.5, 0.0)));
+    let lower_teal = Box::new(Lambertian::new(Vector3::new(0.2, 0.8, 0.8)));
+
+    //Quads
+    world.push(Box::new(Quad::new(
+        Vector3::new(-3.0, -2.0, 5.0),
+        Vector3::new(0.0, 0.0, -4.0),
+        Vector3::new(0.0, 4.0, 0.0),
+        left_red,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(-2.0, -2.0, 0.0),
+        Vector3::new(4.0, 0.0, 0.0),
+        Vector3::new(0.0, 4.0, 0.0),
+        back_green,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(3.0, -2.0, 1.0),
+        Vector3::new(0.0, 0.0, 4.0),
+        Vector3::new(0.0, 4.0, 0.0),
+        right_blue,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(-2.0, 3.0, 1.0),
+        Vector3::new(4.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, 4.0),
+        upper_orange,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(-2.0, -3.0, 5.0),
+        Vector3::new(4.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, -4.0),
+        lower_teal,
+    )));
+
+    // Camera
+
+    let camera = Camera::new(
+        400,
+        1.0,
+        100,
+        50,
+        80.0,
+        Vector3::new(0.0, 0.0, 9.0),
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        0.0,
+        1.0,
+    );
+    camera.render(world);
+}
+
 fn main() {
     let now = Instant::now();
 
     // Scenes to be rendered
-    match 3 {
+    match 4 {
         1 => spheres(),
         2 => checkered_spheres(),
         3 => earth(),
+        4 => quads(),
         _ => {}
     }
 
