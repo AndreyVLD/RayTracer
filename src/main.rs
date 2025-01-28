@@ -5,8 +5,11 @@ mod texture;
 mod utils;
 mod vector3;
 
+use crate::shapes::box_quad::BoxQuad;
 use crate::shapes::quad::Quad;
-use crate::shapes::{Dielectric, DiffuseLight, Hittable, Lambertian, Material, Metal, Sphere};
+use crate::shapes::sphere::Sphere;
+use crate::shapes::transformation::{RotateY, Translate};
+use crate::shapes::{Dielectric, DiffuseLight, Hittable, Lambertian, Material, Metal};
 use crate::texture::{CheckerTexture, ImageTexture};
 use crate::utils::background_gradient;
 use crate::vector3::Vector3;
@@ -220,7 +223,6 @@ fn quads() {
     )));
 
     // Camera
-
     let camera = Camera::new(
         400,
         1.0,
@@ -330,7 +332,32 @@ fn cornell_box() {
         Vector3::new(0.0, 0.0, 555.0),
         Vector3::new(555.0, 0.0, 0.0),
         Vector3::new(0.0, 555.0, 0.0),
-        white,
+        white.clone(),
+    )));
+
+    let mut box_1: Arc<dyn Hittable> = Arc::new(BoxQuad::new(
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(165.0, 330.0, 165.0),
+        white.clone(),
+    ));
+
+    box_1 = Arc::new(RotateY::new(box_1, 15.0));
+
+    world.push(Box::new(Translate::new(
+        box_1,
+        Vector3::new(265.0, 0.0, 295.0),
+    )));
+
+    let mut box_2: Arc<dyn Hittable> = Arc::new(BoxQuad::new(
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(165.0, 165.0, 165.0),
+        white.clone(),
+    ));
+
+    box_2 = Arc::new(RotateY::new(box_2, -18.0));
+    world.push(Box::new(Translate::new(
+        box_2,
+        Vector3::new(130.0, 0.0, 65.0),
     )));
 
     let camera = Camera::new(

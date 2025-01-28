@@ -2,11 +2,12 @@
 #![allow(clippy::too_many_arguments)]
 
 use crate::ray::Ray;
-use crate::shapes::{HitRecord, Hittable};
+use crate::shapes::Hittable;
 use crate::utils::linear_to_gamma;
 use crate::vector3::Vector3;
 use rayon::prelude::*;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::cmp::Ordering;
+use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
 pub struct Camera {
@@ -126,17 +127,11 @@ impl Camera {
             return Vector3::new(0.0, 0.0, 0.0);
         }
 
-        let mut min_ray_t = f64::INFINITY;
-        let mut min_record: Option<HitRecord> = None;
+        let min_record = hittable
+            .iter()
+            .filter_map(|hittable| hittable.hit(ray, (0.001, f64::INFINITY)))
+            .min_by(|r1, r2| r1.t.partial_cmp(&r2.t).unwrap_or(Ordering::Equal));
 
-        hittable.iter().for_each(|hittable| {
-            if let Some(hit_record) = hittable.hit(ray, (0.001, f64::INFINITY)) {
-                if hit_record.t < min_ray_t {
-                    min_ray_t = hit_record.t;
-                    min_record = Some(hit_record);
-                }
-            }
-        });
         if let Some(record) = min_record {
             let emission_color = record.material.emitted(record.u, record.v, &record.poz);
 
@@ -180,7 +175,7 @@ impl Camera {
 
                 *pixel = initial_color.to_rgb();
 
-                let current_progress = progress.fetch_add(1, Ordering::Relaxed);
+                let current_progress = progress.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
                 if current_progress % (total_pixels / 10) == 0 {
                     println!("Progress: {}%", (current_progress * 100) / total_pixels);
