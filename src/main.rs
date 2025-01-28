@@ -6,8 +6,9 @@ mod utils;
 mod vector3;
 
 use crate::shapes::quad::Quad;
-use crate::shapes::{Dielectric, Hittable, Lambertian, Material, Metal, Sphere};
-use crate::texture::{CheckerTexture, ImageTexture};
+use crate::shapes::{Dielectric, DiffuseLight, Hittable, Lambertian, Material, Metal, Sphere};
+use crate::texture::{CheckerTexture, ImageTexture, SolidTexture};
+use crate::utils::background_gradient;
 use crate::vector3::Vector3;
 use camera::Camera;
 use std::io::{self, Read};
@@ -19,6 +20,7 @@ pub fn spheres() {
         16.0 / 9.0,
         20,
         10,
+        background_gradient,
         20.0,
         Vector3::new(13.0, 2.0, 3.0),
         Vector3::new(0.0, 0.0, 0.0),
@@ -130,6 +132,7 @@ fn checkered_spheres() {
         16.0 / 9.0,
         100,
         50,
+        background_gradient,
         20.0,
         Vector3::new(13.0, 2.0, 3.0),
         Vector3::new(0.0, 0.0, 0.0),
@@ -157,6 +160,7 @@ fn earth() {
         16.0 / 9.0,
         100,
         50,
+        background_gradient,
         20.0,
         Vector3::new(0.0, 0.0, 12.0),
         Vector3::new(0.0, 0.0, 0.0),
@@ -221,6 +225,7 @@ fn quads() {
         1.0,
         100,
         50,
+        background_gradient,
         80.0,
         Vector3::new(0.0, 0.0, 9.0),
         Vector3::new(0.0, 0.0, 0.0),
@@ -231,15 +236,131 @@ fn quads() {
     camera.render(world);
 }
 
+fn simple_lights() {
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Box::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5))),
+    )));
+
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, 2.0, 0.0),
+        2.0,
+        Box::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5))),
+    )));
+
+    let diff_light = Box::new(DiffuseLight::new(Vector3::new(4.0, 4.0, 4.0)));
+    let diff_light_2 = Box::new(DiffuseLight::new(Vector3::new(4.0, 4.0, 4.0)));
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, 7.0, 0.0),
+        2.0,
+        diff_light,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(3.0, 1.0, -2.0),
+        Vector3::new(2.0, 0.0, 0.0),
+        Vector3::new(0.0, 2.0, 0.0),
+        diff_light_2,
+    )));
+
+    let camera = Camera::new(
+        400,
+        16.0 / 9.0,
+        100,
+        50,
+        |_| Vector3::new(0.0, 0.0, 0.0),
+        20.0,
+        Vector3::new(26.0, 3.0, 6.0),
+        Vector3::new(0.0, 2.0, 0.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        0.0,
+        0.0,
+    );
+
+    camera.render(world);
+}
+
+fn cornell_box() {
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+
+    let red = Box::new(Lambertian::new(Vector3::new(0.65, 0.05, 0.05)));
+    let white_1 = Box::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
+    let white_2 = Box::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
+    let white_3 = Box::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
+    let green = Box::new(Lambertian::new(Vector3::new(0.12, 0.45, 0.15)));
+    let light = Box::new(DiffuseLight::new(Vector3::new(15.0, 15.0, 15.0)));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(555.0, 0.0, 0.0),
+        Vector3::new(0.0, 555.0, 0.0),
+        Vector3::new(0.0, 0.0, 555.0),
+        green,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(0.0, 555.0, 0.0),
+        Vector3::new(0.0, 0.0, 555.0),
+        red,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(343.0, 554.0, 332.0),
+        Vector3::new(-130.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, -105.0),
+        light,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(555.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, 555.0),
+        white_1,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(555.0, 555.0, 555.0),
+        Vector3::new(-555.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, -555.0),
+        white_2,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(0.0, 0.0, 555.0),
+        Vector3::new(555.0, 0.0, 0.0),
+        Vector3::new(0.0, 555.0, 0.0),
+        white_3,
+    )));
+
+    let camera = Camera::new(
+        600,
+        1.0,
+        200,
+        50,
+        |_| Vector3::new(0.0, 0.0, 0.0),
+        40.0,
+        Vector3::new(278.0, 278.0, -800.0),
+        Vector3::new(278.0, 278.0, 0.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        0.0,
+        0.0,
+    );
+    camera.render(world);
+}
+
 fn main() {
     let now = Instant::now();
 
     // Scenes to be rendered
-    match 4 {
+    match 6 {
         1 => spheres(),
         2 => checkered_spheres(),
         3 => earth(),
         4 => quads(),
+        5 => simple_lights(),
+        6 => cornell_box(),
         _ => {}
     }
 

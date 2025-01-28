@@ -14,6 +14,7 @@ pub struct Camera {
     image_width: u32,
     samples_per_pixel: u32,
     max_depth: u32,
+    background: fn(Vector3) -> Vector3,
 
     camera_center: Vector3,
     image_height: u32,
@@ -31,6 +32,7 @@ impl Camera {
         aspect_ratio: f64,
         samples_per_pixel: u32,
         max_depth: u32,
+        background: fn(Vector3) -> Vector3,
         vfov: f64,
         look_from: Vector3,
         look_at: Vector3,
@@ -79,6 +81,7 @@ impl Camera {
             samples_per_pixel,
             image_height,
             max_depth,
+            background,
 
             camera_center,
             pixel_delta_u,
@@ -118,14 +121,10 @@ impl Camera {
         self.camera_center + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
-    fn ray_color(ray: &Ray, hittable: &[Box<dyn Hittable>], depth: u32) -> Vector3 {
+    fn ray_color(&self, ray: &Ray, hittable: &[Box<dyn Hittable>], depth: u32) -> Vector3 {
         if depth == 0 {
             return Vector3::new(0.0, 0.0, 0.0);
         }
-
-        let a = 0.5 * (ray.direction.y + 1.0);
-        let background_color =
-            (1.0 - a) * Vector3::new(1.0, 1.0, 1.0) + a * Vector3::new(0.5, 0.7, 1.0);
 
         let mut min_ray_t = f64::INFINITY;
         let mut min_record: Option<HitRecord> = None;
@@ -139,12 +138,16 @@ impl Camera {
             }
         });
         if let Some(record) = min_record {
+            let emission_color = record.material.emitted(record.u, record.v, &record.poz);
+
             if let Some((scattered, attenuation)) = record.material.scatter(ray, &record) {
-                return attenuation * Self::ray_color(&scattered, hittable, depth - 1);
+                let scatter_color = attenuation * self.ray_color(&scattered, hittable, depth - 1);
+                scatter_color + emission_color
+            } else {
+                emission_color
             }
-            Vector3::new(0.0, 0.0, 0.0)
         } else {
-            background_color
+            (self.background)(ray.direction)
         }
     }
 
@@ -163,7 +166,7 @@ impl Camera {
 
                 for _s in 0..self.samples_per_pixel {
                     let ray = self.get_ray(x, y);
-                    let color = Self::ray_color(&ray, &hittable, self.max_depth);
+                    let color = self.ray_color(&ray, &hittable, self.max_depth);
                     initial_color += color;
                 }
                 initial_color = initial_color / self.samples_per_pixel as f64;

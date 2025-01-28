@@ -7,6 +7,10 @@ use std::fmt::Debug;
 
 pub trait Material: Send + Sync + Debug {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Ray, Vector3)>;
+
+    fn emitted(&self, _u: f64, _v: f64, _p: &Vector3) -> Vector3 {
+        Vector3::new(0.0, 0.0, 0.0)
+    }
 }
 
 #[derive(Debug)]
@@ -109,5 +113,32 @@ impl Material for Dielectric {
 
         let scattered = Ray::new(hit_record.poz, direction);
         Some((scattered, attenuation))
+    }
+}
+
+#[derive(Debug)]
+pub struct DiffuseLight {
+    texture: Box<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(emit: Vector3) -> DiffuseLight {
+        DiffuseLight {
+            texture: Box::new(SolidTexture::new(emit)),
+        }
+    }
+
+    pub fn from_texture(texture: Box<dyn Texture>) -> DiffuseLight {
+        DiffuseLight { texture }
+    }
+}
+
+impl Material for DiffuseLight {
+    fn scatter(&self, _ray: &Ray, _hit_record: &HitRecord) -> Option<(Ray, Vector3)> {
+        None
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: &Vector3) -> Vector3 {
+        self.texture.value(u, v, p)
     }
 }

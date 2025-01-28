@@ -17,3 +17,8 @@ pub fn refract(v: Vector3, normal: Vector3, refractive_ratio: f64) -> Vector3 {
     let r_out_parallel = -(1.0 - r_out_perp.length().powi(2)).abs().sqrt() * normal;
     r_out_perp + r_out_parallel
 }
+
+pub fn background_gradient(v: Vector3) -> Vector3 {
+    let a = 0.5 * (v.y + 1.0);
+    (1.0 - a) * Vector3::new(1.0, 1.0, 1.0) + a * Vector3::new(0.5, 0.7, 1.0)
+}
