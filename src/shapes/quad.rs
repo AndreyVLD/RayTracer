@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use crate::hit::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;

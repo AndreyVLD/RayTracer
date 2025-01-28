@@ -17,8 +17,8 @@ impl<'a> HitRecord<'a> {
         HitRecord {
             t,
             poz,
-            front_face: false,
-            normal: Vector3::default(),
+            front_face: true,
+            normal: Vector3::new(1.0, 0.0, 0.0),
             material,
             u,
             v,

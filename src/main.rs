@@ -13,6 +13,7 @@ use crate::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
 use crate::shapes::box_quad::BoxQuad;
 use crate::shapes::quad::Quad;
 use crate::shapes::sphere::Sphere;
+use crate::shapes::volume::ConstantMedium;
 use crate::texture::{CheckerTexture, ImageTexture};
 use crate::transformation::{RotateY, Translate};
 use crate::utils::background_gradient;
@@ -380,17 +381,106 @@ fn cornell_box() {
     camera.render(world);
 }
 
+fn cornell_smoke() {
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+
+    let red = Arc::new(Lambertian::new(Vector3::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Vector3::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::new(Vector3::new(7.0, 7.0, 7.0)));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(555.0, 0.0, 0.0),
+        Vector3::new(0.0, 555.0, 0.0),
+        Vector3::new(0.0, 0.0, 555.0),
+        green,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(0.0, 555.0, 0.0),
+        Vector3::new(0.0, 0.0, 555.0),
+        red,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(113.0, 554.0, 127.0),
+        Vector3::new(330.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, 305.0),
+        light,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(555.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(555.0, 555.0, 555.0),
+        Vector3::new(-555.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, -555.0),
+        white.clone(),
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(0.0, 0.0, 555.0),
+        Vector3::new(555.0, 0.0, 0.0),
+        Vector3::new(0.0, 555.0, 0.0),
+        white.clone(),
+    )));
+
+    let mut box_1: Arc<dyn Hittable> = Arc::new(BoxQuad::new(
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(165.0, 330.0, 165.0),
+        white.clone(),
+    ));
+
+    box_1 = Arc::new(RotateY::new(box_1, 15.0));
+    let box_1 = Translate::new(box_1, Vector3::new(265.0, 0.0, 295.0));
+    let fog_1 = ConstantMedium::new(Box::new(box_1), 0.01, Vector3::new(0.0, 0.0, 0.0));
+    world.push(Box::new(fog_1));
+
+    let mut box_2: Arc<dyn Hittable> = Arc::new(BoxQuad::new(
+        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(165.0, 165.0, 165.0),
+        white.clone(),
+    ));
+
+    box_2 = Arc::new(RotateY::new(box_2, -18.0));
+    let box_2 = Translate::new(box_2, Vector3::new(130.0, 0.0, 65.0));
+    let fog_2 = ConstantMedium::new(Box::new(box_2), 0.01, Vector3::new(1.0, 1.0, 1.0));
+    world.push(Box::new(fog_2));
+
+    let camera = Camera::new(
+        600,
+        1.0,
+        200,
+        50,
+        |_| Vector3::new(0.0, 0.0, 0.0),
+        40.0,
+        Vector3::new(278.0, 278.0, -800.0),
+        Vector3::new(278.0, 278.0, 0.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        0.0,
+        0.0,
+    );
+    camera.render(world);
+}
+
 fn main() {
     let now = Instant::now();
 
     // Scenes to be rendered
-    match 6 {
+    match 7 {
         1 => spheres(),
         2 => checkered_spheres(),
         3 => earth(),
         4 => quads(),
         5 => simple_lights(),
         6 => cornell_box(),
+        7 => cornell_smoke(),
         _ => {}
     }
 

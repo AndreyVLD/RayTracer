@@ -3,6 +3,7 @@ use crate::vector3::Vector3;
 pub struct Ray {
     pub origin: Vector3,
     pub direction: Vector3,
+    pub length: f64,
 }
 
 impl Ray {
@@ -10,6 +11,7 @@ impl Ray {
         Ray {
             origin,
             direction: direction.normalize(),
+            length: direction.length(),
         }
     }
     pub fn point_at(&self, t: f64) -> Vector3 {
