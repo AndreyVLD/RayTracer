@@ -3,12 +3,13 @@
 use crate::ray::Ray;
 use crate::shapes::{HitRecord, Hittable, Material};
 use crate::vector3::Vector3;
+use std::sync::Arc;
 
 pub struct Quad {
     starting_corner: Vector3,
     u: Vector3,
     v: Vector3,
-    material: Box<dyn Material>,
+    material: Arc<dyn Material>,
     normal: Vector3,
     d: f64,
     w: Vector3,
@@ -19,7 +20,7 @@ impl Quad {
         starting_corner: Vector3,
         u: Vector3,
         v: Vector3,
-        material: Box<dyn Material>,
+        material: Arc<dyn Material>,
     ) -> Quad {
         let n = u.cross(&v);
         let normal = n.normalize();

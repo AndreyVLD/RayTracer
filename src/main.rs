@@ -7,11 +7,12 @@ mod vector3;
 
 use crate::shapes::quad::Quad;
 use crate::shapes::{Dielectric, DiffuseLight, Hittable, Lambertian, Material, Metal, Sphere};
-use crate::texture::{CheckerTexture, ImageTexture, SolidTexture};
+use crate::texture::{CheckerTexture, ImageTexture};
 use crate::utils::background_gradient;
 use crate::vector3::Vector3;
 use camera::Camera;
 use std::io::{self, Read};
+use std::sync::Arc;
 use std::time::Instant;
 
 pub fn spheres() {
@@ -36,7 +37,7 @@ pub fn spheres() {
         Vector3::new(0.9, 0.9, 0.9),
     ));
 
-    let material_ground = Box::new(Lambertian::from_texture(checker));
+    let material_ground = Arc::new(Lambertian::from_texture(checker));
     world.push(Box::new(Sphere::new(
         Vector3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -53,45 +54,45 @@ pub fn spheres() {
             );
 
             if (center - Vector3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                let material: Box<dyn Material>;
+                let material: Arc<dyn Material>;
                 match choose_mat {
                     0.0..0.8 => {
                         // diffuse
                         let albdeo = Vector3::random(0.0, 1.0) * Vector3::random(0.0, 1.0);
-                        material = Box::new(Lambertian::new(albdeo));
+                        material = Arc::new(Lambertian::new(albdeo));
                         world.push(Box::new(Sphere::new(center, 0.2, material)));
                     }
                     0.8..0.95 => {
                         // metal
                         let albedo = Vector3::random(0.5, 1.0);
                         let fuzz = fastrand::f64() * 0.5;
-                        material = Box::new(Metal::new(albedo, fuzz));
+                        material = Arc::new(Metal::new(albedo, fuzz));
                         world.push(Box::new(Sphere::new(center, 0.2, material)));
                     }
                     _ => {
                         // glass
-                        material = Box::new(Dielectric::new(1.5));
+                        material = Arc::new(Dielectric::new(1.5));
                         world.push(Box::new(Sphere::new(center, 0.2, material)));
                     }
                 }
             }
         }
     }
-    let material_1 = Box::new(Dielectric::new(1.5));
+    let material_1 = Arc::new(Dielectric::new(1.5));
     world.push(Box::new(Sphere::new(
         Vector3::new(0.0, 1.0, 0.0),
         1.0,
         material_1,
     )));
 
-    let material_2 = Box::new(Lambertian::new(Vector3::new(0.4, 0.2, 0.1)));
+    let material_2 = Arc::new(Lambertian::new(Vector3::new(0.4, 0.2, 0.1)));
     world.push(Box::new(Sphere::new(
         Vector3::new(-4.0, 1.0, 0.0),
         1.0,
         material_2,
     )));
 
-    let material_3 = Box::new(Metal::new(Vector3::new(0.7, 0.6, 0.5), 0.0));
+    let material_3 = Arc::new(Metal::new(Vector3::new(0.7, 0.6, 0.5), 0.0));
     world.push(Box::new(Sphere::new(
         Vector3::new(4.0, 1.0, 0.0),
         1.0,
@@ -118,13 +119,13 @@ fn checkered_spheres() {
     world.push(Box::new(Sphere::new(
         Vector3::new(0.0, -10.0, 0.0),
         10.0,
-        Box::new(Lambertian::from_texture(checker_1)),
+        Arc::new(Lambertian::from_texture(checker_1)),
     )));
 
     world.push(Box::new(Sphere::new(
         Vector3::new(0.0, 10.0, 0.0),
         10.0,
-        Box::new(Lambertian::from_texture(checker_2)),
+        Arc::new(Lambertian::from_texture(checker_2)),
     )));
 
     let camera = Camera::new(
@@ -147,7 +148,7 @@ fn checkered_spheres() {
 fn earth() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
     let earth_texture = Box::new(ImageTexture::new("earthmap.jpg"));
-    let earth_surface = Box::new(Lambertian::from_texture(earth_texture));
+    let earth_surface = Arc::new(Lambertian::from_texture(earth_texture));
 
     world.push(Box::new(Sphere::new(
         Vector3::new(0.0, 0.0, 0.0),
@@ -176,11 +177,11 @@ fn quads() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     // Materials
-    let left_red = Box::new(Lambertian::new(Vector3::new(1.0, 0.2, 0.2)));
-    let back_green = Box::new(Lambertian::new(Vector3::new(0.2, 1.0, 0.2)));
-    let right_blue = Box::new(Lambertian::new(Vector3::new(0.2, 0.2, 1.0)));
-    let upper_orange = Box::new(Lambertian::new(Vector3::new(1.0, 0.5, 0.0)));
-    let lower_teal = Box::new(Lambertian::new(Vector3::new(0.2, 0.8, 0.8)));
+    let left_red = Arc::new(Lambertian::new(Vector3::new(1.0, 0.2, 0.2)));
+    let back_green = Arc::new(Lambertian::new(Vector3::new(0.2, 1.0, 0.2)));
+    let right_blue = Arc::new(Lambertian::new(Vector3::new(0.2, 0.2, 1.0)));
+    let upper_orange = Arc::new(Lambertian::new(Vector3::new(1.0, 0.5, 0.0)));
+    let lower_teal = Arc::new(Lambertian::new(Vector3::new(0.2, 0.8, 0.8)));
 
     //Quads
     world.push(Box::new(Quad::new(
@@ -238,31 +239,31 @@ fn quads() {
 
 fn simple_lights() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+    let material = Arc::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5)));
     world.push(Box::new(Sphere::new(
         Vector3::new(0.0, -1000.0, 0.0),
         1000.0,
-        Box::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5))),
+        material.clone(),
     )));
 
     world.push(Box::new(Sphere::new(
         Vector3::new(0.0, 2.0, 0.0),
         2.0,
-        Box::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5))),
+        material,
     )));
 
-    let diff_light = Box::new(DiffuseLight::new(Vector3::new(4.0, 4.0, 4.0)));
-    let diff_light_2 = Box::new(DiffuseLight::new(Vector3::new(4.0, 4.0, 4.0)));
+    let diff_light = Arc::new(DiffuseLight::new(Vector3::new(4.0, 4.0, 4.0)));
     world.push(Box::new(Sphere::new(
         Vector3::new(0.0, 7.0, 0.0),
         2.0,
-        diff_light,
+        diff_light.clone(),
     )));
 
     world.push(Box::new(Quad::new(
         Vector3::new(3.0, 1.0, -2.0),
         Vector3::new(2.0, 0.0, 0.0),
         Vector3::new(0.0, 2.0, 0.0),
-        diff_light_2,
+        diff_light,
     )));
 
     let camera = Camera::new(
@@ -285,12 +286,10 @@ fn simple_lights() {
 fn cornell_box() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
-    let red = Box::new(Lambertian::new(Vector3::new(0.65, 0.05, 0.05)));
-    let white_1 = Box::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
-    let white_2 = Box::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
-    let white_3 = Box::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
-    let green = Box::new(Lambertian::new(Vector3::new(0.12, 0.45, 0.15)));
-    let light = Box::new(DiffuseLight::new(Vector3::new(15.0, 15.0, 15.0)));
+    let red = Arc::new(Lambertian::new(Vector3::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Vector3::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::new(Vector3::new(15.0, 15.0, 15.0)));
 
     world.push(Box::new(Quad::new(
         Vector3::new(555.0, 0.0, 0.0),
@@ -317,21 +316,21 @@ fn cornell_box() {
         Vector3::new(0.0, 0.0, 0.0),
         Vector3::new(555.0, 0.0, 0.0),
         Vector3::new(0.0, 0.0, 555.0),
-        white_1,
+        white.clone(),
     )));
 
     world.push(Box::new(Quad::new(
         Vector3::new(555.0, 555.0, 555.0),
         Vector3::new(-555.0, 0.0, 0.0),
         Vector3::new(0.0, 0.0, -555.0),
-        white_2,
+        white.clone(),
     )));
 
     world.push(Box::new(Quad::new(
         Vector3::new(0.0, 0.0, 555.0),
         Vector3::new(555.0, 0.0, 0.0),
         Vector3::new(0.0, 555.0, 0.0),
-        white_3,
+        white,
     )));
 
     let camera = Camera::new(

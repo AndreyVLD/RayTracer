@@ -2,15 +2,16 @@ use crate::ray::Ray;
 use crate::shapes::hit::{HitRecord, Hittable};
 use crate::shapes::material::Material;
 use crate::vector3::Vector3;
+use std::sync::Arc;
 
 pub struct Sphere {
     center: Vector3,
     radius: f64,
-    material: Box<dyn Material>,
+    material: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vector3, radius: f64, material: Box<dyn Material>) -> Sphere {
+    pub fn new(center: Vector3, radius: f64, material: Arc<dyn Material>) -> Sphere {
         Sphere {
             center,
             radius,
@@ -73,7 +74,7 @@ mod tests {
     #[test]
     fn test_sphere_intersection_miss_1() {
         let ray = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 1.0));
-        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let material = Arc::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0, material);
 
         assert!(sphere.hit(&ray, (-10.0, 10.0)).is_none());
@@ -81,7 +82,7 @@ mod tests {
     #[test]
     fn test_sphere_intersection_miss_2() {
         let ray = Ray::new(Vector3::new(0.0, 0.0, -7.0), Vector3::new(0.0, 0.0, -1.0));
-        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let material = Arc::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0, material);
 
         assert!(sphere.hit(&ray, (-10.0, 10.0)).is_none());
@@ -90,7 +91,7 @@ mod tests {
     #[test]
     fn test_sphere_intersection_hit() {
         let ray = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, -1.0));
-        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let material = Arc::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0, material);
         let hit_record = sphere.hit(&ray, (-10.0, 10.0)).unwrap();
 
@@ -102,7 +103,7 @@ mod tests {
     #[test]
     fn test_sphere_intersection_tangent() {
         let ray = Ray::new(Vector3::new(1.0, 0.0, 0.0), Vector3::new(0.0, 0.0, -1.0));
-        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let material = Arc::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 1.0, material);
         let hit_record = sphere.hit(&ray, (-10.0, 10.0)).unwrap();
 
@@ -114,7 +115,7 @@ mod tests {
     #[test]
     fn test_sphere_intersection_inside() {
         let ray = Ray::new(Vector3::new(0.0, 0.0, -4.0), Vector3::new(0.0, 0.0, -1.0));
-        let material = Box::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
+        let material = Arc::new(Lambertian::new(Vector3::new(1.0, 1.0, 1.0)));
         let sphere = Sphere::new(Vector3::new(0.0, 0.0, -5.0), 5.0, material);
         let hit_record = sphere.hit(&ray, (-10.0, 10.0)).unwrap();
 
