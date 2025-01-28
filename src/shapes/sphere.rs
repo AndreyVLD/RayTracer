@@ -1,6 +1,6 @@
+use crate::hit::{HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
-use crate::shapes::hit::{HitRecord, Hittable};
-use crate::shapes::material::Material;
 use crate::vector3::Vector3;
 use std::sync::Arc;
 
@@ -69,7 +69,7 @@ impl Hittable for Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::shapes::Lambertian;
+    use crate::material::Lambertian;
 
     #[test]
     fn test_sphere_intersection_miss_1() {

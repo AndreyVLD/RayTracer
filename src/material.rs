@@ -1,5 +1,5 @@
+use crate::hit::HitRecord;
 use crate::ray::Ray;
-use crate::shapes::HitRecord;
 use crate::texture::{SolidTexture, Texture};
 use crate::utils::{reflect, refract};
 use crate::vector3::Vector3;

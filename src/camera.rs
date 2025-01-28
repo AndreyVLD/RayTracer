@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 #![allow(clippy::too_many_arguments)]
 
+use crate::hit::Hittable;
 use crate::ray::Ray;
-use crate::shapes::Hittable;
 use crate::utils::linear_to_gamma;
 use crate::vector3::Vector3;
 use rayon::prelude::*;

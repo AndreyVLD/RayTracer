@@ -1,6 +1,7 @@
+use crate::hit::{HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::shapes::quad::Quad;
-use crate::shapes::{HitRecord, Hittable, Material};
 use crate::vector3::Vector3;
 use std::cmp::Ordering;
 use std::sync::Arc;

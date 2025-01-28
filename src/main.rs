@@ -1,16 +1,20 @@
 mod camera;
+pub mod hit;
+pub mod material;
 mod ray;
 mod shapes;
 mod texture;
+pub mod transformation;
 mod utils;
 mod vector3;
 
+use crate::hit::Hittable;
+use crate::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
 use crate::shapes::box_quad::BoxQuad;
 use crate::shapes::quad::Quad;
 use crate::shapes::sphere::Sphere;
-use crate::shapes::transformation::{RotateY, Translate};
-use crate::shapes::{Dielectric, DiffuseLight, Hittable, Lambertian, Material, Metal};
 use crate::texture::{CheckerTexture, ImageTexture};
+use crate::transformation::{RotateY, Translate};
 use crate::utils::background_gradient;
 use crate::vector3::Vector3;
 use camera::Camera;
