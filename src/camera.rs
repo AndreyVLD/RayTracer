@@ -11,23 +11,55 @@ use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
 pub struct Camera {
+    /// The aspect ratio of the camera.
     aspect_ratio: f64,
+    /// The width of the image in pixels.
     image_width: u32,
+    /// The number of samples per pixel for Anti-Aliasing.
     samples_per_pixel: u32,
+    /// The maximum depth for ray tracing.
     max_depth: u32,
+    /// The background function that returns a color for a given direction.
     background: fn(Vector3) -> Vector3,
 
+    /// The center of the camera.
     camera_center: Vector3,
+    /// The height of the image in pixels.
     image_height: u32,
+    /// The change in position per pixel in the u direction.
     pixel_delta_u: Vector3,
+    /// The change in position per pixel in the v direction.
     pixel_delta_v: Vector3,
+    /// The location of the top-left pixel.
     pixel00_loc: Vector3,
+    /// The angle of defocus
     defocus_angle: f64,
+    /// The u component of the defocus disk.
     defocus_disk_u: Vector3,
+    /// The v component of the defocus disk.
     defocus_disk_v: Vector3,
 }
 
 impl Camera {
+    /// Creates a new `Camera` instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `image_width` - The width of the image in pixels.
+    /// * `aspect_ratio` - The aspect ratio of the camera.
+    /// * `samples_per_pixel` - The number of samples per pixel.
+    /// * `max_depth` - The maximum depth for ray tracing.
+    /// * `background` - The background function that returns a color for a given direction.
+    /// * `vfov` - The vertical field of view in degrees.
+    /// * `look_from` - The position of the camera.
+    /// * `look_at` - The point the camera is looking at.
+    /// * `vup` - The up direction of the camera.
+    /// * `defocus_angle` - The angle of defocus.
+    /// * `focus_dist` - The distance to the focus plane.
+    ///
+    /// # Returns
+    ///
+    /// A new `Camera` instance.
     pub fn new(
         image_width: u32,
         aspect_ratio: f64,
@@ -94,10 +126,31 @@ impl Camera {
         }
     }
 
+    /// Returns the center of the pixel at the given coordinates.
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - The x-coordinate of the pixel.
+    /// * `y` - The y-coordinate of the pixel.
+    ///
+    /// # Returns
+    ///
+    /// The center of the pixel as a `Vector3`.
     fn get_pixel_center(&self, x: u32, y: u32) -> Vector3 {
         self.pixel00_loc + (x * self.pixel_delta_u) + (y * self.pixel_delta_v)
     }
 
+    /// Returns a ray that passes through the pixel at the given coordinates.
+    /// The ray is randomly offset within the pixel to provide Anti-Aliasing.
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - The x-coordinate of the pixel.
+    /// * `y` - The y-coordinate of the pixel.
+    ///
+    /// # Returns
+    ///
+    /// A `Ray` that passes through the pixel.
     fn get_ray(&self, x: u32, y: u32) -> Ray {
         let offset_x = fastrand::f64() - 0.5;
         let offset_y = fastrand::f64() - 0.5;
@@ -117,11 +170,28 @@ impl Camera {
         Ray::new(ray_origin, ray_direction)
     }
 
+    /// Returns a random sample point on the defocus disk.
+    ///
+    /// # Returns
+    ///
+    /// A random sample point on the defocus disk as a `Vector3`.
     fn defocus_disk_sample(&self) -> Vector3 {
         let p = Vector3::random_in_unit_disk();
         self.camera_center + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
+    /// Computes the color of a ray by tracing it through the scene.
+    /// Main ray tracing function. Recursively traces rays through the scene.
+    ///
+    /// # Arguments
+    ///
+    /// * `ray` - The ray to trace.
+    /// * `hittable` - The list of objects in the scene.
+    /// * `depth` - The current depth of the ray.
+    ///
+    /// # Returns
+    ///
+    /// The color of the ray as a `Vector3`.
     fn ray_color(&self, ray: &Ray, hittable: &[Box<dyn Hittable>], depth: u32) -> Vector3 {
         if depth == 0 {
             return Vector3::new(0.0, 0.0, 0.0);
@@ -146,6 +216,11 @@ impl Camera {
         }
     }
 
+    /// Renders the scene and saves the image to a file.
+    ///
+    /// # Arguments
+    ///
+    /// * `hittable` - The list of objects in the scene.
     pub fn render(&self, hittable: Vec<Box<dyn Hittable>>) {
         let progress = Arc::new(AtomicUsize::new(10));
         let total_pixels = (self.image_width * self.image_height) as usize;
@@ -182,7 +257,7 @@ impl Camera {
                 }
             });
 
-        let output_name = "output_debug.png";
+        let output_name = "output.png";
         if let Err(e) = imgbuf.save(output_name) {
             eprintln!("Failed to save image: {}", e);
         } else {

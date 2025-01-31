@@ -4,13 +4,28 @@ use crate::ray::Ray;
 use crate::vector3::Vector3;
 use std::sync::Arc;
 
+/// Represents a sphere in 3D space.
 pub struct Sphere {
+    /// The center of the sphere.
     center: Vector3,
+    /// The radius of the sphere.
     radius: f64,
+    /// The material of the sphere.
     material: Arc<dyn Material>,
 }
 
 impl Sphere {
+    /// Creates a new `Sphere` with the given center, radius, and material.
+    ///
+    /// # Arguments
+    ///
+    /// * `center` - The center of the sphere.
+    /// * `radius` - The radius of the sphere.
+    /// * `material` - The material of the sphere.
+    ///
+    /// # Returns
+    ///
+    /// A new `Sphere` instance.
     pub fn new(center: Vector3, radius: f64, material: Arc<dyn Material>) -> Sphere {
         Sphere {
             center,
@@ -19,6 +34,15 @@ impl Sphere {
         }
     }
 
+    /// Computes the spherical coordinates (u, v) for a given point on the sphere.
+    ///
+    /// # Arguments
+    ///
+    /// * `p` - The point on the sphere.
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing the spherical coordinates (u, v).
     fn get_sphere_uv(p: Vector3) -> (f64, f64) {
         let phi = (-p.z).atan2(p.x) + std::f64::consts::PI;
         let theta = (-p.y).acos();
@@ -30,6 +54,16 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
+    /// Checks if a ray hits the sphere within a given interval.
+    ///
+    /// # Arguments
+    ///
+    /// * `ray` - The ray to test for intersection.
+    /// * `interval` - The range of distances to consider for intersections.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the `HitRecord` if an intersection is found, or `None` if no intersection is found.
     fn hit(&self, ray: &Ray, interval: (f64, f64)) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
         let a = ray.direction.dot(&ray.direction);

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::hit::{HitRecord, Hittable};
 use crate::material::{Isotropic, Material};
 use crate::ray::Ray;

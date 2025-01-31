@@ -16,6 +16,7 @@ use crate::scenes::{
 use std::io::{self, Read};
 use std::time::Instant;
 
+/// Main function
 fn main() {
     let now = Instant::now();
 
@@ -28,8 +29,8 @@ fn main() {
         5 => simple_lights(),
         6 => cornell_box(),
         7 => cornell_smoke(),
-        8 => final_scene(1920, 10000, 40),
-        _ => final_scene(400, 250, 4),
+        8 => final_scene(1920, 10000, 5, true),
+        _ => final_scene(400, 250, 4, true),
     }
 
     println!(

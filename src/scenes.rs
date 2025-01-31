@@ -12,6 +12,7 @@ use crate::vector3::Vector3;
 use fastrand::f64;
 use std::sync::Arc;
 
+/// Creates a scene with multiple spheres of different materials and renders it using the camera.
 pub fn spheres() {
     let camera = Camera::new(
         1920,
@@ -95,6 +96,7 @@ pub fn spheres() {
     camera.render(world);
 }
 
+/// Creates a scene with two checkered spheres and renders it using the camera.
 pub fn checkered_spheres() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
     let checker_1 = Box::new(CheckerTexture::new(
@@ -138,6 +140,7 @@ pub fn checkered_spheres() {
     camera.render(world);
 }
 
+/// Creates a scene with a sphere textured with an image of the Earth and renders it using the camera.
 pub fn earth() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
     let earth_texture = Box::new(ImageTexture::new("earthmap.jpg"));
@@ -166,6 +169,7 @@ pub fn earth() {
     camera.render(world);
 }
 
+/// Create a scene with 4 quads and renders it using the camera.
 pub fn quads() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
@@ -229,6 +233,7 @@ pub fn quads() {
     camera.render(world);
 }
 
+/// Creates a scene with a sphere and a quad with light material and renders it using the camera.
 pub fn simple_lights() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
     let material = Arc::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5)));
@@ -259,9 +264,9 @@ pub fn simple_lights() {
     )));
 
     let camera = Camera::new(
-        400,
+        1920,
         16.0 / 9.0,
-        100,
+        10000,
         50,
         |_| Vector3::new(0.0, 0.0, 0.0),
         20.0,
@@ -275,6 +280,7 @@ pub fn simple_lights() {
     camera.render(world);
 }
 
+/// Creates a Cornell box scene and renders it using the camera.
 pub fn cornell_box() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
@@ -351,10 +357,10 @@ pub fn cornell_box() {
     )));
 
     let camera = Camera::new(
-        600,
+        1920,
         1.0,
-        200,
-        50,
+        10000,
+        5,
         |_| Vector3::new(0.0, 0.0, 0.0),
         40.0,
         Vector3::new(278.0, 278.0, -800.0),
@@ -366,6 +372,7 @@ pub fn cornell_box() {
     camera.render(world);
 }
 
+/// Creates a Cornell box scene with 2 boxes made out of smoke and renders it using the camera.
 pub fn cornell_smoke() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
@@ -439,10 +446,10 @@ pub fn cornell_smoke() {
     world.push(Box::new(fog_2));
 
     let camera = Camera::new(
-        600,
+        1920,
         1.0,
-        200,
-        50,
+        10000,
+        5,
         |_| Vector3::new(0.0, 0.0, 0.0),
         40.0,
         Vector3::new(278.0, 278.0, -800.0),
@@ -454,15 +461,24 @@ pub fn cornell_smoke() {
     camera.render(world);
 }
 
-pub fn final_scene(image_width: u32, samples: u32, max_depth: u32) {
+/// Creates the final scene with various objects and materials, and renders it using the camera.
+///
+/// # Arguments
+///
+/// * `image_width` - The width of the image in pixels.
+/// * `samples` - The number of samples per pixel.
+/// * `max_depth` - The maximum depth for ray tracing.
+/// * `reduced` - A boolean flag to reduce the number of objects in the scene for faster rendering.
+pub fn final_scene(image_width: u32, samples: u32, max_depth: u32, reduced: bool) {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
 
     let ground = Arc::new(Lambertian::new(Vector3::new(0.48, 0.83, 0.53)));
 
-    let boxes_per_side = 20;
+    let boxes_per_side = if reduced { 5 } else { 20 };
+
     for i in 0..boxes_per_side {
         for j in 0..boxes_per_side {
-            let w = 100.0;
+            let w = 100.0 * (20.0 / boxes_per_side as f64);
             let x0 = -1000.0 + (i as f64) * w;
             let z0 = -1000.0 + (j as f64) * w;
             let y0 = 0.0;
@@ -548,14 +564,16 @@ pub fn final_scene(image_width: u32, samples: u32, max_depth: u32) {
         mirror,
     )));
 
-    let white = Arc::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
-    let ns = 1000;
+    if !reduced {
+        let white = Arc::new(Lambertian::new(Vector3::new(0.73, 0.73, 0.73)));
+        let ns = 1000;
 
-    for _ in 0..ns {
-        let sphere = Sphere::new(Vector3::random(0.0, 165.0), 10.0, white.clone());
-        let rotate = RotateY::new(Arc::new(sphere), 15.0);
-        let translate = Translate::new(Arc::new(rotate), Vector3::new(-100.0, 270.0, 395.0));
-        world.push(Box::new(translate));
+        for _ in 0..ns {
+            let sphere = Sphere::new(Vector3::random(0.0, 165.0), 10.0, white.clone());
+            let rotate = RotateY::new(Arc::new(sphere), 15.0);
+            let translate = Translate::new(Arc::new(rotate), Vector3::new(-100.0, 270.0, 395.0));
+            world.push(Box::new(translate));
+        }
     }
 
     let camera = Camera::new(

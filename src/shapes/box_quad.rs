@@ -6,11 +6,24 @@ use crate::vector3::Vector3;
 use std::cmp::Ordering;
 use std::sync::Arc;
 
+/// Represents a box composed of six quads
 pub struct BoxQuad {
+    /// The six sides of the box, each represented as a `Hittable` quad.
     sides: Vec<Box<dyn Hittable>>,
 }
 
 impl BoxQuad {
+    /// Creates a new `BoxQuad` from two opposite corners and a material.
+    ///
+    /// # Arguments
+    ///
+    /// * `a` - One corner of the box.
+    /// * `b` - The opposite corner of the box.
+    /// * `material` - The material to be applied to all sides of the box.
+    ///
+    /// # Returns
+    ///
+    /// A new `BoxQuad` instance.
     pub fn new(a: Vector3, b: Vector3, material: Arc<dyn Material>) -> Self {
         let mut sides: Vec<Box<dyn Hittable>> = Vec::new();
 
@@ -67,6 +80,16 @@ impl BoxQuad {
 }
 
 impl Hittable for BoxQuad {
+    /// Checks if a ray hits any of the sides of the box within a given interval.
+    ///
+    /// # Arguments
+    ///
+    /// * `ray` - The ray to test for intersection.
+    /// * `interval` - The range of distances to consider for intersections.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the closest `HitRecord` if an intersection is found, or `None` if no intersection is found.
     fn hit(&self, ray: &Ray, interval: (f64, f64)) -> Option<HitRecord> {
         self.sides
             .iter()
