@@ -31,7 +31,7 @@ fn main() {
         7 => cornell_box(),
         8 => cornell_smoke(),
         9 => final_scene(1920, 10000, 5, true),
-        _ => final_scene(400, 250, 10, false),
+        _ => final_scene(400, 250, 10, true),
     }
 
     println!(
