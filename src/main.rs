@@ -1,98 +1,39 @@
 mod camera;
+pub mod hit;
+pub mod material;
 mod ray;
+mod scenes;
 mod shapes;
+mod texture;
+pub mod transformation;
 mod utils;
 mod vector3;
 
-use crate::shapes::{Dielectric, Hittable, Lambertian, Material, Metal, Sphere};
-use crate::vector3::Vector3;
-use camera::Camera;
+use crate::scenes::{
+    checkered_spheres, colored_simple_lights, cornell_box, cornell_smoke, earth, final_scene,
+    quads, simple_lights, spheres,
+};
 use std::io::{self, Read};
 use std::time::Instant;
 
-pub fn generate_image() {
-    let camera = Camera::new(
-        1920,
-        16.0 / 9.0,
-        20,
-        10,
-        20.0,
-        Vector3::new(13.0, 2.0, 3.0),
-        Vector3::new(0.0, 0.0, 0.0),
-        Vector3::new(0.0, 1.0, 0.0),
-        0.2,
-        10.0,
-    );
-
-    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
-    let material_ground = Box::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5)));
-    world.push(Box::new(Sphere::new(
-        Vector3::new(0.0, -1000.0, 0.0),
-        1000.0,
-        material_ground,
-    )));
-
-    for a in -11..11 {
-        for b in -11..11 {
-            let choose_mat = fastrand::f64();
-            let center = Vector3::new(
-                a as f64 + 0.9 * fastrand::f64(),
-                0.2,
-                b as f64 + 0.9 * fastrand::f64(),
-            );
-
-            if (center - Vector3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                let material: Box<dyn Material>;
-                match choose_mat {
-                    0.0..0.8 => {
-                        // diffuse
-                        let albdeo = Vector3::random(0.0, 1.0) * Vector3::random(0.0, 1.0);
-                        material = Box::new(Lambertian::new(albdeo));
-                        world.push(Box::new(Sphere::new(center, 0.2, material)));
-                    }
-                    0.8..0.95 => {
-                        // metal
-                        let albedo = Vector3::random(0.5, 1.0);
-                        let fuzz = fastrand::f64() * 0.5;
-                        material = Box::new(Metal::new(albedo, fuzz));
-                        world.push(Box::new(Sphere::new(center, 0.2, material)));
-                    }
-                    _ => {
-                        // glass
-                        material = Box::new(Dielectric::new(1.5));
-                        world.push(Box::new(Sphere::new(center, 0.2, material)));
-                    }
-                }
-            }
-        }
-    }
-    let material_1 = Box::new(Dielectric::new(1.5));
-    world.push(Box::new(Sphere::new(
-        Vector3::new(0.0, 1.0, 0.0),
-        1.0,
-        material_1,
-    )));
-
-    let material_2 = Box::new(Lambertian::new(Vector3::new(0.4, 0.2, 0.1)));
-    world.push(Box::new(Sphere::new(
-        Vector3::new(-4.0, 1.0, 0.0),
-        1.0,
-        material_2,
-    )));
-
-    let material_3 = Box::new(Metal::new(Vector3::new(0.7, 0.6, 0.5), 0.0));
-    world.push(Box::new(Sphere::new(
-        Vector3::new(4.0, 1.0, 0.0),
-        1.0,
-        material_3,
-    )));
-
-    camera.render(world);
-}
-
+/// Main function
 fn main() {
     let now = Instant::now();
-    generate_image();
+
+    // Scenes to be rendered
+    match 8 {
+        1 => spheres(),
+        2 => checkered_spheres(),
+        3 => earth(),
+        4 => quads(),
+        5 => simple_lights(),
+        6 => colored_simple_lights(),
+        7 => cornell_box(),
+        8 => cornell_smoke(),
+        9 => final_scene(1920, 10000, 5, true),
+        _ => final_scene(1920, 250, 10, false),
+    }
+
     println!(
         "Time elapsed in generate image: {} ms",
         now.elapsed().as_millis()

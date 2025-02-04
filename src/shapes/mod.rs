@@ -1,8 +1,4 @@
-pub mod hit;
-pub mod material;
+pub mod box_quad;
 pub mod quad;
 pub mod sphere;
-
-pub use hit::*;
-pub use material::*;
-pub use sphere::Sphere;
+pub mod volume;
