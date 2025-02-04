@@ -2,7 +2,7 @@
 
 ![final_scene.png](outputs/final_scene.png)
 A ray tracer implemented in Rust, inspired by the *Ray Tracing in One Weekend* book.
-The project renders 3D scenes with spheres, materials, and basic shading.
+The project renders 3D scenes with spheres, boxes, materials, basic shading and lighting.
 
 ## Features
 
@@ -62,10 +62,13 @@ cargo run
     - `shapes\`
         - `box_quad.rs`: A struct for box formed from 6 quadrilaterals and its implementation functions
         - `volume.rs`: Struct for Constant Medium rendering and its implementation functions
-        - `quad.rs`: In progress code for a 4-vertex figure implementation
+        - `quad.rs`: Struct for a 4 vertex quadrilateral
         - `sphere.rs`: Sphere struct and its implementation functions
 
 ## Gallery
 
 ![spheres.png](outputs/spheres.png)
-![final_scene_better.png](outputs/final_scene_better.png)
+![basic_lights_improved.png](outputs/basic_lights_improved.png)
+![colored_lights.png](outputs/colored_lights.png)
+![cornell_box_improved.png](outputs/cornell_box_improved.png)
+![cornell_fog_enhanced.png](outputs/cornell_fog_enhanced.png)

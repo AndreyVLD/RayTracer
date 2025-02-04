@@ -208,6 +208,8 @@ impl Camera {
             if let Some((scattered, attenuation)) = record.material.scatter(ray, &record) {
                 let scatter_color = attenuation * self.ray_color(&scattered, hittable, depth - 1);
                 scatter_color + emission_color
+            } else if self.max_depth == depth {
+                emission_color / emission_color.max()
             } else {
                 emission_color
             }

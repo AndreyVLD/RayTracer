@@ -280,6 +280,54 @@ pub fn simple_lights() {
     camera.render(world);
 }
 
+/// Creates a scene with a sphere and a quad with colored light material and renders it using the camera.
+pub fn colored_simple_lights() {
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+    let material = Arc::new(Lambertian::new(Vector3::new(0.5, 0.5, 0.5)));
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        material.clone(),
+    )));
+
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, 2.0, 0.0),
+        2.0,
+        material,
+    )));
+
+    let diff_light_1 = Arc::new(DiffuseLight::new(Vector3::new(8.0, 2.0, 2.0)));
+    let diff_light_2 = Arc::new(DiffuseLight::new(Vector3::new(2.0, 2.0, 8.0)));
+    world.push(Box::new(Sphere::new(
+        Vector3::new(0.0, 7.0, 0.0),
+        2.0,
+        diff_light_1,
+    )));
+
+    world.push(Box::new(Quad::new(
+        Vector3::new(3.0, 1.0, -2.0),
+        Vector3::new(2.0, 0.0, 0.0),
+        Vector3::new(0.0, 2.0, 0.0),
+        diff_light_2,
+    )));
+
+    let camera = Camera::new(
+        1920,
+        16.0 / 9.0,
+        10000,
+        50,
+        |_| Vector3::new(0.0, 0.0, 0.0),
+        20.0,
+        Vector3::new(26.0, 3.0, 6.0),
+        Vector3::new(0.0, 2.0, 0.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        0.0,
+        0.0,
+    );
+
+    camera.render(world);
+}
+
 /// Creates a Cornell box scene and renders it using the camera.
 pub fn cornell_box() {
     let mut world: Vec<Box<dyn Hittable>> = Vec::new();
@@ -358,7 +406,7 @@ pub fn cornell_box() {
 
     let camera = Camera::new(
         1920,
-        1.0,
+        16.0 / 9.0,
         10000,
         5,
         |_| Vector3::new(0.0, 0.0, 0.0),
@@ -447,7 +495,7 @@ pub fn cornell_smoke() {
 
     let camera = Camera::new(
         1920,
-        1.0,
+        16.0 / 9.0,
         10000,
         5,
         |_| Vector3::new(0.0, 0.0, 0.0),
@@ -578,7 +626,7 @@ pub fn final_scene(image_width: u32, samples: u32, max_depth: u32, reduced: bool
 
     let camera = Camera::new(
         image_width,
-        1.0,
+        16.0 / 9.0,
         samples,
         max_depth,
         |_| Vector3::new(0.0, 0.0, 0.0),

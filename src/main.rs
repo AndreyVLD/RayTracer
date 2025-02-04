@@ -10,8 +10,8 @@ mod utils;
 mod vector3;
 
 use crate::scenes::{
-    checkered_spheres, cornell_box, cornell_smoke, earth, final_scene, quads, simple_lights,
-    spheres,
+    checkered_spheres, colored_simple_lights, cornell_box, cornell_smoke, earth, final_scene,
+    quads, simple_lights, spheres,
 };
 use std::io::{self, Read};
 use std::time::Instant;
@@ -27,10 +27,11 @@ fn main() {
         3 => earth(),
         4 => quads(),
         5 => simple_lights(),
-        6 => cornell_box(),
-        7 => cornell_smoke(),
-        8 => final_scene(1920, 10000, 5, true),
-        _ => final_scene(400, 250, 4, true),
+        6 => colored_simple_lights(),
+        7 => cornell_box(),
+        8 => cornell_smoke(),
+        9 => final_scene(1920, 10000, 5, true),
+        _ => final_scene(1920, 250, 10, false),
     }
 
     println!(

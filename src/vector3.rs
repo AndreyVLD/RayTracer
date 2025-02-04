@@ -161,6 +161,14 @@ impl Vector3 {
 
         (self.x.abs() < s) && (self.y.abs() < s) && (self.z.abs() < s)
     }
+
+    pub fn max(&self) -> f64 {
+        let mut max = self.x;
+        max = max.max(self.y);
+        max = max.max(self.z);
+
+        max
+    }
 }
 
 impl Default for Vector3 {
