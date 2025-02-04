@@ -21,7 +21,7 @@ fn main() {
     let now = Instant::now();
 
     // Scenes to be rendered
-    match 8 {
+    match 10 {
         1 => spheres(),
         2 => checkered_spheres(),
         3 => earth(),
@@ -31,7 +31,7 @@ fn main() {
         7 => cornell_box(),
         8 => cornell_smoke(),
         9 => final_scene(1920, 10000, 5, true),
-        _ => final_scene(1920, 250, 10, false),
+        _ => final_scene(400, 250, 10, false),
     }
 
     println!(
